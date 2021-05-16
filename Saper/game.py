@@ -29,8 +29,9 @@ class Game:
         leftCorner = (0, 0)
         for row in range(self.__board.get_size()[0]):
             for col in range(self.__board.get_size()[1]):
-                temp = self.__icons['logo']
-                self.__window.blit(temp, leftCorner)
+                tile = self.__board.get_tile((row, col))
+                icon = self.get_icon(tile)
+                self.__window.blit(icon, leftCorner)
                 leftCorner = leftCorner[0] + self.__tileSize[0], leftCorner[1]
             leftCorner = 0, leftCorner[1] + self.__tileSize[1]
 
@@ -43,3 +44,7 @@ class Game:
             icon = pygame.transform.scale(icon, self.__tileSize)
             icons[fileName.split('.')[0]] = icon
         return icons
+
+    def get_icon(self, tile):
+        name = "mine" if tile.isBomb() else str(tile.get_bombsAroundNo())
+        return self.__icons[name]
