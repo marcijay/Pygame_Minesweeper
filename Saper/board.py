@@ -1,26 +1,29 @@
 from tile import Tile
-from random import random
+from random import randint
 
 
 class Board:
-    def __init__(self, size, probability):
+    def __init__(self, size, probability, bombs):
+        self.__lost = False
+        self.__uncoveredTiles = 0
+        self.__bombs = bombs
         self.__size = size
         self.__bombProbability = probability
-        self.__board = self.set_board()
-        self.set_adjacent()
+        self.__board = self.__set_board()
+        self.__place_bombs()
+        self.__set_adjacent()
 
-    def set_board(self):
+    def __set_board(self):
         board = []
         for row in range(self.__size[0]):
             row = []
             for col in range(self.__size[1]):
-                isBomb = random() < self.__bombProbability
-                tile = Tile(isBomb)
+                tile = Tile()
                 row.append(tile)
             board.append(row)
         return board
 
-    def set_adjacent(self):
+    def __set_adjacent(self):
         for row in range(self.__size[0]):
             for col in range(self.__size[1]):
                 tile = self.get_tile((row, col))
@@ -45,3 +48,35 @@ class Board:
 
     def get_tile(self, index):
         return self.__board[index[0]][index[1]]
+
+    def handle_click(self, tile, flag):
+        if tile.is_clicked() or (not flag and tile.is_flagged()):
+            return
+        if flag:
+            tile.toggle_flag()
+            return
+        tile.click()
+        if tile.is_bomb():
+            self.__lost = True
+            return
+        self.__uncoveredTiles += 1
+        if tile.get_bombsAroundNo() != 0:
+            return
+        for adjacent in tile.get_adjacentTiles():
+            if not adjacent.is_bomb() and not adjacent.is_clicked():
+                self.handle_click(adjacent, False)
+
+    def check_if_victory(self):
+        return self.__uncoveredTiles == self.__size[0] * self.__size[1] - self.__bombs
+
+    def get_lost(self):
+        return self.__lost
+
+    def __place_bombs(self):
+        for n in range(self.__bombs):
+            while True:
+                x = randint(0, self.__size[1] - 1)
+                y = randint(0, self.__size[0] - 1)
+                if not self.get_tile((x, y)).is_bomb():
+                    self.get_tile((x, y)).set_bomb()
+                    break

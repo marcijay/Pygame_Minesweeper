@@ -1,5 +1,6 @@
 import pygame
 import os
+from time import sleep
 
 
 class Game:
@@ -21,8 +22,17 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    position = pygame.mouse.get_pos()
+                    isRMB = pygame.mouse.get_pressed(3)[2]
+                    self.handle_click(position, isRMB)
             self.draw()
             pygame.display.flip()
+            if self.__board.check_if_victory():
+                sound = pygame.mixer.Sound("assets/victory_sound.wav")
+                sound.play()
+                sleep(3)
+                running = False
         pygame.quit()
 
     def draw(self):
@@ -46,5 +56,15 @@ class Game:
         return icons
 
     def get_icon(self, tile):
-        name = "mine" if tile.isBomb() else str(tile.get_bombsAroundNo())
+        if tile.is_clicked():
+            name = "mine_boom" if tile.is_bomb() else str(tile.get_bombsAroundNo())
+        else:
+            name = "flagged_tile" if tile.is_flagged() else "blanc_tile"
         return self.__icons[name]
+
+    def handle_click(self, position, isRMB):
+        if self.__board.get_lost():
+            return
+        index = position[1] // self.__tileSize[1], position[0] // self.__tileSize[0]
+        tile = self.__board.get_tile(index)
+        self.__board.handle_click(tile, isRMB)
