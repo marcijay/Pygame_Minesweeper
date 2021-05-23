@@ -1,17 +1,20 @@
+import pygame
 from tile import Tile
 from random import randint
 
 
 class Board:
-    def __init__(self, size, probability, bombs):
+    def __init__(self, size, bombs, tileSize):
         self.__lost = False
         self.__uncoveredTiles = 0
         self.__bombs = bombs
         self.__size = size
-        self.__bombProbability = probability
+        self.__tileSize = tileSize
         self.__board = self.__set_board()
         self.__place_bombs()
         self.__set_adjacent()
+        self.rect = pygame.Rect(
+            0, 0, self.__size[0] * self.__tileSize, self.__size[1] * self.__tileSize)
 
     def __set_board(self):
         board = []
