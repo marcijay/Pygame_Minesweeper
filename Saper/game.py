@@ -1,5 +1,8 @@
 import os
 from time import sleep
+
+import pygame
+
 from board import Board
 from ui import *
 from state import *
@@ -31,7 +34,7 @@ class Game:
     MARGIN_SIZE = 20
     MAX_BOARD_SIZE = 50
     MIN_BOARD_SIZE = 10
-    BACKGROUND_COLOR = pygame.Color(180, 180, 180)
+    BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
     def __init__(self, rows, cols, bombs):
         display_info = pygame.display.Info()
@@ -52,7 +55,11 @@ class Game:
         self.__screen_Rect = None
         self.__board_Rect = None
         self.__top_bar_Rect = None
+
         self.__face = None
+        self.__flagCounter = None
+        self.__timer = None
+
         self.__init_screen()
 
         self.__running = None
@@ -71,8 +78,19 @@ class Game:
         self.__board.get_rect().center = self.__board_area_Rect.center
 
         self.__top_bar_Rect = pygame.Rect(self.MARGIN_SIZE, self.MARGIN_SIZE, board_area_width, self.TOP_BAR_HEIGHT)
-        self.__face = ImageButton(self.__icons["face_happy"], pygame.Rect((window_width / 2 - self.FACE_EDGE_LEN / 2,
-                                                           self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.FACE_EDGE_LEN / 2), self.__faceSize), self.__board.reset)
+        self.__face = ImageButton(self.__icons["face_happy"],  self.__board.reset)
+        self.__face.replace_rect(pygame.Rect((window_width / 2 - self.FACE_EDGE_LEN / 2,
+                                              self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.FACE_EDGE_LEN / 2),
+                                             self.__faceSize))
+        self.__flagCounter = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
+        self.__flagCounter.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5,
+                                              self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
+                                                    (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
+        self.__flagCounter.set_value(self.__board.get_bombsLeft())
+        self.__timer = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
+        self.__timer.replace_rect(pygame.Rect((window_width - self.MARGIN_SIZE - 3 * self.TIMER_DIG_WIDTH - 5,
+                                                     self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
+                                                    (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
 
         self.__screen = pygame.display.set_mode((window_width, window_height))
         self.__screen_Rect = self.__screen.get_rect()
@@ -113,6 +131,11 @@ class Game:
         self.__board.draw(self.__screen)
         self.__update_face()
         self.__face.draw(self.__screen)
+        self.__flagCounter.set_value(self.__board.get_bombsLeft())
+        self.__flagCounter.update_display()
+        self.__flagCounter.draw(self.__screen)
+        self.__timer.update_display()
+        self.__timer.draw(self.__screen)
         pygame.display.flip()
 
     def __update_face(self):
@@ -138,7 +161,10 @@ class Game:
             icons[fileName.split('.')[0]] = icon
         return icons
 
-    def get_icon(self, tile):
+    def get_icons(self):
+        return self.__icons
+
+    def get_tile_icon(self, tile):
         name = ''
         if self.__board.get_status() == GameState.running or self.__board.get_status() == GameState.waiting:
             if tile.is_clicked():

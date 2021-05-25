@@ -21,7 +21,7 @@ class Board:
     def __init__(self, size, bombs, tileSize, owner):
         self.__size = size
         self.__bombs = bombs
-        self.__bombsLeft = bombs
+        self.__flagsLeft = bombs
         self.__clearTilesLeft = self.__size[0] * self.__size[1] - self.__bombs
 
         self.__tileSize = tileSize
@@ -48,7 +48,7 @@ class Board:
         for row in range(self.__size[0]):
             for col in range(self.__size[1]):
                 tile = self.get_tile((row, col))
-                icon = self.__owner.get_icon(tile)
+                icon = self.__owner.get_tile_icon(tile)
                 background.blit(icon, leftCorner)
                 leftCorner = leftCorner[0] + self.__tileSize, leftCorner[1]
             leftCorner = 0, leftCorner[1] + self.__tileSize
@@ -109,11 +109,12 @@ class Board:
             if j is not None and i is not None:
                 tile = self.get_tile((i, j))
                 if not tile.is_clicked():
-                    tile.toggle_flag()
                     if tile.is_flagged():
-                        self.__bombsLeft -= 1
-                    else:
-                        self.__bombsLeft += 1
+                        tile.toggle_flag()
+                        self.__flagsLeft += 1
+                    elif not self.__flagsLeft == 0:
+                        tile.toggle_flag()
+                        self.__flagsLeft -= 1
 
     def handle_mouse_up(self, button):
         if self.__status in [GameState.won, GameState.lost]:
@@ -165,14 +166,14 @@ class Board:
     def check_if_won(self):
         if self.__clearTilesLeft == 0:
             self.__change_status(GameState.won)
-            self.__bombsLeft = 0
+            self.__flagsLeft = 0
 
     def reset(self, size=None, bombs=None):
         if size is not None:
             self.__size = size
         if bombs is not None:
             self.__bombs = bombs
-        self.__bombsLeft = self.__bombs
+        self.__flagsLeft = self.__bombs
         self.__clearTilesLeft = self.__size[0] * self.__size[1] - self.__bombs
         self.__background = create_background(self.__size[0], self.__size[1], self.__tileSize,
                                               self.__bgColour, self.__linesColour)
@@ -180,6 +181,9 @@ class Board:
         self.__startTime = None
         self.__time = 0
         self.__status = GameState.waiting
+
+    def get_bombsLeft(self):
+        return self.__bombsLeft
 
     def get_rect(self):
         return self.__rect
