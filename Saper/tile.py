@@ -1,5 +1,14 @@
 class Tile:
-    def __init__(self):
+    def __init__(self, owner, position):
+        self.__isBomb = False
+        self.__isClicked = False
+        self.__isFlagged = False
+        self.__position = position
+        self.__adjacentTiles = []
+        self.__bombsAroundNo = 0
+        self.__owner = owner
+
+    def reset(self):
         self.__isBomb = False
         self.__isClicked = False
         self.__isFlagged = False
@@ -24,6 +33,9 @@ class Tile:
 
     def get_adjacentTiles(self):
         return self.__adjacentTiles
+
+    def get_position(self):
+        return self.__position
 
     def get_bombsAroundNo(self):
         return self.__bombsAroundNo
