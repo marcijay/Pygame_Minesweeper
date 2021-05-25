@@ -33,7 +33,7 @@ class Board:
         self.__grid = self.__set_grid()
 
         self.__startTime = None
-        self.__time = 0
+        self.__bombsPlaced = False
 
         self.__rect = pygame.Rect(0, 0, self.__size[0] * self.__tileSize, self.__size[1] * self.__tileSize)
         self.__status = GameState.waiting
@@ -167,6 +167,17 @@ class Board:
         if self.__clearTilesLeft == 0:
             self.__change_status(GameState.won)
             self.__flagsLeft = 0
+            return
+
+        if self.__bombsPlaced:
+            finished = True
+            for row in self.__grid:
+                for tile in row:
+                    if tile.is_bomb() and not tile.is_flagged():
+                        finished = False
+
+            if finished:
+                self.__change_status(GameState.won)
 
     def reset(self, size=None, bombs=None):
         if size is not None:
@@ -179,11 +190,16 @@ class Board:
                                               self.__bgColour, self.__linesColour)
         self.__reset_grid()
         self.__startTime = None
-        self.__time = 0
+        self.__bombsPlaced = False
         self.__status = GameState.waiting
 
-    def get_bombsLeft(self):
-        return self.__bombsLeft
+        self.__owner.get_timer().set_value(0)
+
+    def get_flagsLeft(self):
+        return self.__flagsLeft
+
+    def get_startTime(self):
+        return self.__startTime
 
     def get_rect(self):
         return self.__rect
@@ -203,4 +219,5 @@ class Board:
                         not (tile.get_position()[0] == x and tile.get_position()[1] == y):
                     self.get_tile((x, y)).set_bomb()
                     break
+        self.__bombsPlaced = True
         self.__set_adjacent()

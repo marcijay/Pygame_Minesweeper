@@ -86,7 +86,7 @@ class Game:
         self.__flagCounter.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5,
                                               self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
                                                     (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
-        self.__flagCounter.set_value(self.__board.get_bombsLeft())
+        self.__flagCounter.set_value(self.__board.get_flagsLeft())
         self.__timer = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
         self.__timer.replace_rect(pygame.Rect((window_width - self.MARGIN_SIZE - 3 * self.TIMER_DIG_WIDTH - 5,
                                                      self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
@@ -129,14 +129,25 @@ class Game:
     def __draw_all(self):
         self.__screen.fill(self.BACKGROUND_COLOR)
         self.__board.draw(self.__screen)
+        self.__draw_top_bar()
+
+        pygame.display.flip()
+
+    def __draw_top_bar(self):
         self.__update_face()
         self.__face.draw(self.__screen)
-        self.__flagCounter.set_value(self.__board.get_bombsLeft())
+
+        self.__flagCounter.set_value(self.__board.get_flagsLeft())
         self.__flagCounter.update_display()
         self.__flagCounter.draw(self.__screen)
+
+        if self.__board.get_status() == GameState.running:
+            time = (pygame.time.get_ticks() - self.__board.get_startTime()) / 1000
+            if time > 999:
+                time = 999
+            self.__timer.set_value(time)
         self.__timer.update_display()
         self.__timer.draw(self.__screen)
-        pygame.display.flip()
 
     def __update_face(self):
         if self.__board.get_status() == GameState.waiting or self.__board.get_status() == GameState.running:
@@ -164,6 +175,9 @@ class Game:
     def get_icons(self):
         return self.__icons
 
+    def get_timer(self):
+        return self.__timer
+
     def get_tile_icon(self, tile):
         name = ''
         if self.__board.get_status() == GameState.running or self.__board.get_status() == GameState.waiting:
@@ -179,10 +193,10 @@ class Game:
             else:
                 name = "mine" if tile.is_bomb() else "blanc_tile"
         elif self.__board.get_status() == GameState.won:
-            if tile.is_clicked():
-                name = str(tile.get_bombsAroundNo())
-            elif tile.is_bomb():
+            if tile.is_bomb():
                 name = "flagged_tile"
+            else:
+                name = str(tile.get_bombsAroundNo())
         return self.__icons[name]
 
     def __process_events(self):
