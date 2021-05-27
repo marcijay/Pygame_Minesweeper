@@ -8,7 +8,7 @@ class GameState(enum.Enum):
     lost = 4
 
 
-class WindowState(enum.Enum):
+class WindowMode(enum.Enum):
     game = 0
     leaderboard = 1
-    winner_entry = 3
+    entry = 3

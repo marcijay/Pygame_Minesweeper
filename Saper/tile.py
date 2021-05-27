@@ -15,13 +15,6 @@ class Tile:
                 bombs += 1
         self.__bombsAroundNo = bombs
 
-    def reset(self):
-        self.__isBomb = False
-        self.__isClicked = False
-        self.__isFlagged = False
-        self.__adjacentTiles = []
-        self.__bombsAroundNo = 0
-
     def is_bomb(self):
         return self.__isBomb
 

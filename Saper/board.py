@@ -50,11 +50,6 @@ class Board:
             x += 1
         return board
 
-    def __reset_grid(self):
-        for row in self.__grid:
-            for tile in row:
-                tile.reset()
-
     def __set_adjacent(self):
         for row in range(self.__size[0]):
             for col in range(self.__size[1]):
@@ -95,9 +90,7 @@ class Board:
             if not adjacent.is_bomb() and not adjacent.is_clicked() and not adjacent.is_flagged():
                 self.__open_tiles(adjacent)
 
-        if self.__clearTilesLeft == 0:
-            self.__change_status(GameState.won)
-            self.__bombsLeft = 0
+        self.check_if_won()
 
     def __change_status(self, newStatus):
         self.__status = newStatus
@@ -142,6 +135,7 @@ class Board:
                     elif not self.__flagsLeft == 0:
                         tile.toggle_flag()
                         self.__flagsLeft -= 1
+                self.check_if_won()
 
     def handle_mouse_up(self, button):
         if self.__status in [GameState.won, GameState.lost]:
@@ -164,6 +158,7 @@ class Board:
         if self.__clearTilesLeft == 0:
             self.__change_status(GameState.won)
             self.__flagsLeft = 0
+            self.__owner.handle_victory()
             return
 
         if self.__bombsPlaced:
@@ -175,6 +170,7 @@ class Board:
 
             if finished:
                 self.__change_status(GameState.won)
+                self.__owner.handle_victory()
 
     def reset(self, size=None, bombs=None):
         if size is not None:
