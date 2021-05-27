@@ -11,11 +11,16 @@ class Game:
     FACE_EDGE_LEN = 35
     TIMER_DIG_HEIGHT = 40
     TIMER_DIG_WIDTH = 20
+
     TOP_BAR_HEIGHT = 50
-    BOTTOM_BAR_HEIGHT = 40
+    TOOLBAR_HEIGHT = 50
+
     MARGIN_SIZE = 20
-    FONT_SIZE = 10
+
+    BUTTON_FONT_SIZE = 12
+    CHECKBOX_FONT_SIZE = 10
     FONT_COLOR = pygame.Color(255, 0, 0)
+
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
     def __init__(self, difficulty):
@@ -25,12 +30,16 @@ class Game:
         self.__bombs = 5
         self.__set_difficulty(difficulty)
 
+        self.__leaderboardContent = {'EASY': [], 'NORMAL': [], 'HARD': []}
+        self.__optionsOpen = False
+
         self.__tileSize = self.TILE_EDGE_LEN, self.TILE_EDGE_LEN
         self.__counterSize = self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT
         self.__faceSize = self.FACE_EDGE_LEN, self.FACE_EDGE_LEN
 
         self.__icons = self.__load_icons()
-        self.__font = load_font('Lato-Black.ttf', self.FONT_SIZE)
+        self.__buttonFont = load_font('Lato-Black.ttf', self.BUTTON_FONT_SIZE)
+        self.__checkboxFont = load_font('Lato-Black.ttf', self.CHECKBOX_FONT_SIZE)
 
         self.__board = Board((self.__rows, self.__cols), self.__bombs, self.TILE_EDGE_LEN, self)
 
@@ -44,7 +53,11 @@ class Game:
         self.__timerElement = None
         self.__timer = None
 
+        self.__leaderboardButton = None
+        self.__difficultyButton = None
         self.__difficultyBox = None
+
+        self.__leaderboard = None
 
         self.__init_screen()
 
@@ -55,32 +68,30 @@ class Game:
         boardAreaWidth = self.__cols * self.TILE_EDGE_LEN
         boardAreaHeight = self.__rows * self.TILE_EDGE_LEN
         window_width = 2 * self.MARGIN_SIZE + boardAreaWidth
-        window_height = 2 * self.MARGIN_SIZE + self.TOP_BAR_HEIGHT + self.BOTTOM_BAR_HEIGHT + boardAreaHeight
+        window_height = 2 * self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT + boardAreaHeight
 
-        self.__boardAreaRect = pygame.Rect(self.MARGIN_SIZE, self.MARGIN_SIZE + self.TOP_BAR_HEIGHT,
-                                           boardAreaWidth, boardAreaHeight)
+        self.__boardAreaRect = pygame.Rect(self.MARGIN_SIZE, self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT, boardAreaWidth, boardAreaHeight)
 
         self.__board.get_rect().size = (self.__cols * self.TILE_EDGE_LEN, self.__rows * self.TILE_EDGE_LEN)
         self.__board.get_rect().center = self.__boardAreaRect.center
 
         self.__face = ImageButton(self.__icons["face_happy"], self.__board.reset)
-        self.__face.replace_rect(pygame.Rect((window_width / 2 - self.FACE_EDGE_LEN / 2,
-                                              self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.FACE_EDGE_LEN / 2),
-                                             self.__faceSize))
+        self.__face.replace_rect(pygame.Rect((window_width / 2 - self.FACE_EDGE_LEN / 2, self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.FACE_EDGE_LEN / 2), self.__faceSize))
 
         self.__flagCounter = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
-        self.__flagCounter.replace_rect(pygame.Rect(
-            (self.MARGIN_SIZE + 5, self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
-            (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
+        self.__flagCounter.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5, self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5), (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
         self.__flagCounter.set_value(self.__board.get_flagsLeft())
 
         self.__timer = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
-        self.__timer.replace_rect(pygame.Rect(
-            (window_width - self.MARGIN_SIZE - 3 * self.TIMER_DIG_WIDTH - 5,
-             self.MARGIN_SIZE + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
-            (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
+        self.__timer.replace_rect(pygame.Rect((window_width - self.MARGIN_SIZE - 3 * self.TIMER_DIG_WIDTH - 5, self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5), (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
 
-        self.__difficultyBox = CheckBoxSelector((self.MARGIN_SIZE + 5, window_height - self.BOTTOM_BAR_HEIGHT - self.FONT_SIZE), self.__font, self.FONT_COLOR, ['Beginner', 'Intermediate', 'Advanced'], self.change_difficulty, self.__difficulty)
+        self.__difficultyButton = TextButton(self.__buttonFont, self.FONT_COLOR, "Difficulty settings", self.__toggle_difficulty_settings)
+        self.__difficultyButton.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5, self.MARGIN_SIZE - self.BUTTON_FONT_SIZE / 2), self.__difficultyButton.get_rect().size))
+
+        self.__leaderboardButton = TextButton(self.__buttonFont, self.FONT_COLOR, "Leaderboard", self.__show_leaderboard)
+        self.__leaderboardButton.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5, self.__difficultyButton.get_rect().bottom + self.BUTTON_FONT_SIZE / 2), self.__leaderboardButton.get_rect().size))
+
+        self.__difficultyBox = CheckBoxSelector((self.__difficultyButton.get_rect().right + 1, self.MARGIN_SIZE - self.CHECKBOX_FONT_SIZE / 2), self.__checkboxFont, self.FONT_COLOR, ['Beginner', 'Intermediate', 'Advanced'], self.change_difficulty, self.__difficulty)
 
         self.__screen = pygame.display.set_mode((window_width, window_height))
         self.__screenRect = self.__screen.get_rect()
@@ -89,16 +100,25 @@ class Game:
     def __reset_game(self):
         self.__board.reset((self.__rows, self.__cols), self.__bombs)
 
+    def __show_leaderboard(self):
+        print("Leaderboard click")
+
+    def __toggle_difficulty_settings(self):
+        self.__optionsOpen = not self.__optionsOpen
+
     def __draw_all(self):
         self.__screen.fill(self.BACKGROUND_COLOR)
         self.__board.draw(self.__screen)
         self.__draw_top_bar()
-        self.__draw_bottom_bar()
+        self.__draw_toolbar()
 
         pygame.display.flip()
 
-    def __draw_bottom_bar(self):
-        self.__difficultyBox.draw(self.__screen)
+    def __draw_toolbar(self):
+        self.__leaderboardButton.draw(self.__screen)
+        self.__difficultyButton.draw(self.__screen)
+        if self.__optionsOpen:
+            self.__difficultyBox.draw(self.__screen)
 
     def __draw_top_bar(self):
         self.__update_face()
@@ -148,7 +168,10 @@ class Game:
             if event.type == pygame.MOUSEBUTTONUP:
                 self.__board.handle_mouse_up(event.button)
                 self.__face.handle_mouse_up(event.button)
-                self.__difficultyBox.handle_mouse_up(event.button)
+                self.__leaderboardButton.handle_mouse_up(event.button)
+                self.__difficultyButton.handle_mouse_up(event.button)
+                if self.__optionsOpen:
+                    self.__difficultyBox.handle_mouse_up(event.button)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.__board.handle_mouse_down(event.button)
             self.__board.check_if_won()

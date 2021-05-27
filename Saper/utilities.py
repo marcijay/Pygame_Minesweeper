@@ -41,12 +41,14 @@ def load_font(name, size):
     return font
 
 
-def draw_frame(width, height, color):
+def draw_frame(width, height, lineColor, backgroundColor=None):
     frame = pygame.Surface((width, height), pygame.SRCALPHA)
-    pygame.draw.line(frame, color, (0, 0), (width, 0))
-    pygame.draw.line(frame, color, (0, 0), (0, height))
-    pygame.draw.line(frame, color, (width - 1, 0), (width - 1, height))
-    pygame.draw.line(frame, color, (0, height - 1), (width, height - 1))
+    if backgroundColor is not None:
+        frame.fill(backgroundColor)
+    pygame.draw.line(frame, lineColor, (0, 0), (width, 0))
+    pygame.draw.line(frame, lineColor, (0, 0), (0, height))
+    pygame.draw.line(frame, lineColor, (width - 1, 0), (width - 1, height))
+    pygame.draw.line(frame, lineColor, (0, height - 1), (width, height - 1))
 
     return frame
 

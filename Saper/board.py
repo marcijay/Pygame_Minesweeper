@@ -107,7 +107,8 @@ class Board:
             while True:
                 x = randint(0, self.__size[0] - 1)
                 y = randint(0, self.__size[1] - 1)
-                if not (self.get_tile((x, y)).is_bomb()) and not (tile.get_position()[0] == x and tile.get_position()[1] == y):
+                if not (self.get_tile((x, y)).is_bomb()) and\
+                        not (tile.get_position()[0] == x and tile.get_position()[1] == y):
                     self.get_tile((x, y)).set_bomb()
                     break
         self.__bombsPlaced = True

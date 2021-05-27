@@ -13,6 +13,9 @@ class Element:
     def replace_rect(self, newRect):
         self._rect = newRect
 
+    def get_rect(self):
+        return self._rect
+
     def draw(self, other_surface):
         other_surface.blit(self._surface, self._rect)
 
@@ -76,6 +79,26 @@ class ImageButton(Element):
             self.__action()
 
 
+class TextButton(Element):
+    def __init__(self, font, color, text, action):
+        self.__text = font.render(text, True, color)
+        margin = 1.5 * font.size("_")[0]
+        surface = draw_frame(self.__text.get_width() + margin, 1.2 * self.__text.get_height(), color, pygame.Color(0, 0, 0))
+
+        super().__init__(surface)
+
+        rect = self.__text.get_rect(center=self._rect.center)
+        self._surface.blit(self.__text, rect)
+        self.__action = action
+
+    def handle_mouse_up(self, button):
+        if button != 1:  # LMB
+            return
+
+        if self._rect.collidepoint(*pygame.mouse.get_pos()):
+            self.__action()
+
+
 class CheckBoxSelector(Element):
     def __init__(self, pos, font, fontColor, options, action, initialValue):
         boxEdgeLen = font.get_height()
@@ -90,9 +113,9 @@ class CheckBoxSelector(Element):
                 break
 
         optionNames = [font.render(option, True, fontColor) for option in options]
-        namesWidths = [2 * boxEdgeLen + name.get_width() for name in optionNames]
-        width = sum(namesWidths)
-        height = boxEdgeLen
+        namesWidths = [1.5 * boxEdgeLen + name.get_width() for name in optionNames]
+        width = max(namesWidths)
+        height = boxEdgeLen * (2 * len(optionNames) - 2)
 
         super().__init__(pygame.Surface((width, height), pygame.SRCALPHA))
         self._rect = pygame.Rect(pos, (width, height))
@@ -100,16 +123,15 @@ class CheckBoxSelector(Element):
         self.__boxesRects = []
         self.__namesRects = []
         optionRects = []
-        x = 0
-
+        y = 0
         for optionName, nameWidth in zip(optionNames, namesWidths):
-            boxRect = self.__uncheckedBox.get_rect(x=x)
+            boxRect = self.__uncheckedBox.get_rect(y=y)
             optionRect = optionName.get_rect(x=boxRect.right + 0.5 * boxRect.width, centery=boxRect.centery)
-            nameRect = pygame.Rect(x, 0, nameWidth, boxEdgeLen)
+            nameRect = pygame.Rect(0, y, nameWidth, boxEdgeLen)
             self.__boxesRects.append(boxRect)
             self.__namesRects.append(nameRect)
             optionRects.append(optionRect)
-            x = nameRect.right
+            y += 1.5 * boxEdgeLen
 
         self.__checkBoxesSurface = pygame.Surface((width, height), pygame.SRCALPHA)
         self.__checkBoxesSurface.fill((0, 0, 0))
