@@ -8,6 +8,13 @@ class Tile:
         self.__bombsAroundNo = 0
         self.__owner = owner
 
+    def __set_bombsAroundNo(self):
+        bombs = 0
+        for tile in self.__adjacentTiles:
+            if tile.is_bomb():
+                bombs += 1
+        self.__bombsAroundNo = bombs
+
     def reset(self):
         self.__isBomb = False
         self.__isClicked = False
@@ -39,13 +46,6 @@ class Tile:
 
     def get_bombsAroundNo(self):
         return self.__bombsAroundNo
-
-    def __set_bombsAroundNo(self):
-        bombs = 0
-        for tile in self.__adjacentTiles:
-            if tile.is_bomb():
-                bombs += 1
-        self.__bombsAroundNo = bombs
 
     def toggle_flag(self):
         self.__isFlagged = not self.__isFlagged

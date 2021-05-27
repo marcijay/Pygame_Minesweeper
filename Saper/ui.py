@@ -1,4 +1,5 @@
 import pygame
+from utilities import draw_frame, draw_checked_box
 
 
 class Element:
@@ -68,8 +69,80 @@ class ImageButton(Element):
         self.__action = action
 
     def handle_mouse_up(self, button):
-        if button != 1:
+        if button != 1:  # LMB
             return
 
         if self._rect.collidepoint(*pygame.mouse.get_pos()):
             self.__action()
+
+
+class CheckBoxSelector(Element):
+    def __init__(self, pos, font, fontColor, options, action, initialValue):
+        boxEdgeLen = font.get_height()
+        self.__uncheckedBox = draw_frame(boxEdgeLen, boxEdgeLen, fontColor)
+        self.__checkedBox = draw_checked_box(boxEdgeLen, fontColor)
+        self.__options = options
+        self.__action = action
+        self.__selected = 0
+        for i, option in enumerate(self.__options):
+            if option == initialValue:
+                self.__selected = i
+                break
+
+        optionNames = [font.render(option, True, fontColor) for option in options]
+        namesWidths = [2 * boxEdgeLen + name.get_width() for name in optionNames]
+        width = sum(namesWidths)
+        height = boxEdgeLen
+
+        super().__init__(pygame.Surface((width, height), pygame.SRCALPHA))
+        self._rect = pygame.Rect(pos, (width, height))
+
+        self.__boxesRects = []
+        self.__namesRects = []
+        optionRects = []
+        x = 0
+
+        for optionName, nameWidth in zip(optionNames, namesWidths):
+            boxRect = self.__uncheckedBox.get_rect(x=x)
+            optionRect = optionName.get_rect(x=boxRect.right + 0.5 * boxRect.width, centery=boxRect.centery)
+            nameRect = pygame.Rect(x, 0, nameWidth, boxEdgeLen)
+            self.__boxesRects.append(boxRect)
+            self.__namesRects.append(nameRect)
+            optionRects.append(optionRect)
+            x = nameRect.right
+
+        self.__checkBoxesSurface = pygame.Surface((width, height), pygame.SRCALPHA)
+        self.__checkBoxesSurface.fill((0, 0, 0))
+        for optionRect, optionName in zip(optionRects, optionNames):
+            self.__checkBoxesSurface.blit(optionName, optionRect)
+        self.__update_display()
+
+    def __update_display(self):
+        self._surface.fill((0, 0, 0))
+        self._surface.blit(self.__checkBoxesSurface, (0, 0))
+        for i, rect in enumerate(self.__boxesRects):
+            if i == self.__selected:
+                self._surface.blit(self.__checkedBox, rect)
+            else:
+                self._surface.blit(self.__uncheckedBox, rect)
+
+    def handle_mouse_up(self, button):
+        if button != 1:  # LMB
+            return
+
+        mouse_pos = pygame.mouse.get_pos()
+        x = mouse_pos[0] - self._rect.left
+        y = mouse_pos[1] - self._rect.top
+        previous = self.__selected
+        for i, (button_rect, item_rect) in enumerate(zip(self.__boxesRects, self.__namesRects)):
+            if item_rect.collidepoint(x, y):
+                if i != self.__selected:
+                    self.__action(self.__options[i])
+                self.__selected = i
+                break
+
+        if self.__selected != previous:
+            self.__update_display()
+
+    def get_selected(self):
+        return self.__options[self.__selected]
