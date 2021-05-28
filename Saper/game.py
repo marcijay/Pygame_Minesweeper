@@ -7,9 +7,6 @@ from ui import *
 from state import *
 
 
-ASSETS_DIR_PATH = os.path.join(os.path.dirname(__file__), 'assets')
-
-
 class Game:
     TILE_EDGE_LEN = 30
     FACE_EDGE_LEN = 35
@@ -32,7 +29,7 @@ class Game:
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
-    DATAFILE_PATH = os.path.join(os.path.dirname(__file__), 'gameData.json')
+    DATAFILE_PATH = 'gameData.json'
 
     def __init__(self):
         self.__difficulty = 'BEGINNER'
@@ -54,8 +51,8 @@ class Game:
         self.__soundButtonSize = self.SOUND_BUTTON_EDGE_LEN, self.SOUND_BUTTON_EDGE_LEN
 
         self.__icons = self.__load_icons()
-        self.__biggerFont = pygame.font.Font(os.path.join(ASSETS_DIR_PATH, 'Lato-Black.ttf'), self.BIGGER_FONT_SIZE)
-        self.__smallerFont = pygame.font.Font(os.path.join(ASSETS_DIR_PATH, 'Lato-Black.ttf'), self.SMALLER_FONT_SIZE)
+        self.__biggerFont = pygame.font.Font('assets/Lato-Black.ttf', self.BIGGER_FONT_SIZE)
+        self.__smallerFont = pygame.font.Font('assets/Lato-Black.ttf', self.SMALLER_FONT_SIZE)
 
         self.__sounds = {'victorySound': pygame.mixer.Sound("assets/sounds/sound_win.wav"),
                          'bombSound': pygame.mixer.Sound("assets/sounds/sound_boom.wav"),
@@ -419,7 +416,7 @@ def run():
     try:
         pygame.init()
         pygame.display.set_caption("Saper")
-        pygame.display.set_icon(pygame.image.load((os.path.join(ASSETS_DIR_PATH, 'logo.png'))))
+        pygame.display.set_icon(pygame.image.load('assets/logo.png'))
         pygame.mouse.set_visible(True)
         game = Game()
         game.start_game_loop()
