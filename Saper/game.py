@@ -34,11 +34,14 @@ class Game:
         self.__difficulty = 'BEGINNER'
         self.__rows = 10
         self.__cols = 10
-        self.__bombs = 10
+        self.__bombs = 5
         self.__set_difficulty(self.__difficulty)
 
         self.__leaderboardContent = {'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []}
         self.__optionsOpen = False
+
+        data = unload_game_data(self.DATAFILE_PATH)
+        self.__read_data(data)
 
         self.__tileSize = self.TILE_EDGE_LEN, self.TILE_EDGE_LEN
         self.__counterSize = self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT
@@ -71,9 +74,6 @@ class Game:
 
         self.__running = None
         self.__mode = WindowMode.game
-
-        data = unload_game_data(self.DATAFILE_PATH)
-        self.__read_data(data)
 
         self.__init_screen()
 
