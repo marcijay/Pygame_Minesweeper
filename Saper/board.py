@@ -90,8 +90,6 @@ class Board:
             if not adjacent.is_bomb() and not adjacent.is_clicked() and not adjacent.is_flagged():
                 self.__open_tiles(adjacent)
 
-        self.check_if_won()
-
     def __change_status(self, newStatus):
         self.__status = newStatus
 
@@ -135,7 +133,6 @@ class Board:
                     elif not self.__flagsLeft == 0:
                         tile.toggle_flag()
                         self.__flagsLeft -= 1
-                self.check_if_won()
 
     def handle_mouse_up(self, button):
         if self.__status in [GameState.won, GameState.lost]:
@@ -153,24 +150,13 @@ class Board:
             if j is not None and i is not None:
                 tile = self.get_tile((i, j))
                 self.__check_tile_open(tile)
+                self.__check_if_won()
 
-    def check_if_won(self):
+    def __check_if_won(self):
         if self.__clearTilesLeft == 0:
             self.__change_status(GameState.won)
             self.__flagsLeft = 0
             self.__owner.handle_victory()
-            return
-
-        if self.__bombsPlaced:
-            finished = True
-            for row in self.__grid:
-                for tile in row:
-                    if tile.is_bomb() and not tile.is_flagged():
-                        finished = False
-
-            if finished:
-                self.__change_status(GameState.won)
-                self.__owner.handle_victory()
 
     def reset(self, size=None, bombs=None):
         if size is not None:

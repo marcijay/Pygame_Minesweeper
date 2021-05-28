@@ -1,7 +1,9 @@
 import os
 import pygame
+import re
 
 ASSETS_DIR_PATH = os.path.join(os.path.dirname(__file__), 'assets')
+ENTRY_UNICODE_REGEX = re.compile('[0-9a-zA-Z@_!#$%^&*()<>?/\\|}{~:\[\]]')
 
 
 def create_background(rows, cols, tileSize, bgColor, lineColor):
@@ -60,3 +62,7 @@ def draw_checked_box(side, color):
     pygame.draw.line(box, color, (side - shift, shift), (shift, side - shift))
 
     return box
+
+
+def check_entry_key(unicode):
+    return ENTRY_UNICODE_REGEX.search(unicode)

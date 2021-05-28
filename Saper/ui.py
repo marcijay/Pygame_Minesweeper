@@ -1,5 +1,5 @@
 import pygame
-from utilities import draw_frame, draw_checked_box
+from utilities import draw_frame, draw_checked_box, check_entry_key
 
 
 class Element:
@@ -171,17 +171,18 @@ class CheckBoxSelector(Element):
 
 
 class Leaderboard(Element):
-    def __init__(self, font, color, icon, entryLimit, width, data):
-        self.__font = font
+    def __init__(self, titleFont, entryFont, color, icon, entryLimit, width, data):
+        self.__font = titleFont
+        self.__entryFont = entryFont
         self.__color = color
         self.__icon = icon
         self.__entryLimit = entryLimit
         self.__data = data
 
-        textHeight = font.get_height()
+        textHeight = titleFont.get_height()
 
         self.__laneWidth = width // 3
-        self.__xGap = 2 * font.size("|")[0]
+        self.__xGap = 2 * titleFont.size("|")[0]
         self.__yGap = 0.5 * textHeight
 
         self.__width = 3 * self.__laneWidth
@@ -190,13 +191,12 @@ class Leaderboard(Element):
         super().__init__(pygame.Surface((self.__width, self.__height), pygame.SRCALPHA))
         self._rect = self._surface.get_rect()
 
-        self.__title = font.render("LEADERBOARD", True, color)
-        self.__beginnerHeader = font.render("BEGINNER", True, color)
-        self.__intermediateHeader = font.render("INTERMEDIATE", True, color)
-        self.__advancedHeader = font.render("ADVANCED", True, color)
+        self.__title = titleFont.render("LEADERBOARD", True, color)
+        self.__beginnerHeader = titleFont.render("BEGINNER", True, color)
+        self.__intermediateHeader = titleFont.render("INTERMEDIATE", True, color)
+        self.__advancedHeader = titleFont.render("ADVANCED", True, color)
         self.__entryStartHeight = (2 * self.__yGap + 3 * textHeight)
 
-        self.__draw_lanes()
         self.__fill_lanes()
 
     def __draw_lanes(self):
@@ -239,17 +239,18 @@ class Leaderboard(Element):
         self._surface.blit(self.__icon, rightIconRect)
 
     def __fill_lanes(self):
+        self.__draw_lanes()
         xName = self.__xGap
         xTime = self.__laneWidth - self.__xGap
         for difficulty in ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']:
             y = self.__entryStartHeight
             for name, time in self.__data[difficulty]:
-                drawnName = self.__font.render(name, True, self.__color)
-                drawnTime = self.__font.render(str(time), True, self.__color)
-                timeWidth = self.__font.size(str(time))[0]
+                drawnName = self.__entryFont.render(name, True, self.__color)
+                drawnTime = self.__entryFont.render(str(time), True, self.__color)
+                timeWidth = self.__entryFont.size(str(time))[0]
                 self._surface.blit(drawnName, (xName, y))
                 self._surface.blit(drawnTime, (xTime - timeWidth, y))
-                y += self.__font.get_height() + self.__yGap
+                y += self.__entryFont.get_height() + self.__yGap
 
             xName += self.__laneWidth
             xTime += self.__laneWidth
@@ -315,9 +316,10 @@ class InputFrame(Element):
             if len(self.__input) == self.__charactersLimit:
                 return
 
-            key_name = event.unicode
-            self.__input += key_name
-            self.__prepare()
+            unicode = event.unicode
+            if check_entry_key(unicode):
+                self.__input += unicode
+                self.__prepare()
 
     def reset_input(self):
         self.__input = ''

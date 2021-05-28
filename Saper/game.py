@@ -15,13 +15,13 @@ class Game:
 
     TOP_BAR_HEIGHT = 50
     TOOLBAR_HEIGHT = 50
-    MARGIN_SIZE = 20
+    MARGIN_SIZE = 25
 
     LEADERBOARD_ENTRY_LIMIT = 10
     NAME_INPUT_LEN_LIMIT = 10
 
-    BUTTON_FONT_SIZE = 12
-    CHECKBOX_FONT_SIZE = 10
+    BIGGER_FONT_SIZE = 12
+    SMALLER_FONT_SIZE = 10
     FONT_COLOR = pygame.Color(255, 0, 0)
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
@@ -41,8 +41,8 @@ class Game:
         self.__faceSize = self.FACE_EDGE_LEN, self.FACE_EDGE_LEN
 
         self.__icons = self.__load_icons()
-        self.__buttonFont = load_font('Lato-Black.ttf', self.BUTTON_FONT_SIZE)
-        self.__checkboxFont = load_font('Lato-Black.ttf', self.CHECKBOX_FONT_SIZE)
+        self.__biggerFont = load_font('Lato-Black.ttf', self.BIGGER_FONT_SIZE)
+        self.__smallerFont = load_font('Lato-Black.ttf', self.SMALLER_FONT_SIZE)
 
         self.__board = Board((self.__rows, self.__cols), self.__bombs, self.TILE_EDGE_LEN, self)
 
@@ -98,12 +98,12 @@ class Game:
         self.__init_entry()
 
     def __init_entry(self):
-        self.__nameInput = InputFrame(self.__buttonFont, self.FONT_COLOR, "Enter name (max. 10 characters)",
+        self.__nameInput = InputFrame(self.__biggerFont, self.FONT_COLOR, "Enter name (max. 10 characters)",
                                       self.NAME_INPUT_LEN_LIMIT, self.__handle_name_entry)
         self.__bravoInfo = Element(
-            self.__buttonFont.render("Congratulations, your score is among best!", True, self.FONT_COLOR))
+            self.__biggerFont.render("Congratulations, your score is among best!", True, self.FONT_COLOR))
 
-        self.__bravoInfo.get_rect().top = (self.MARGIN_SIZE + 1.4 * self.BUTTON_FONT_SIZE)
+        self.__bravoInfo.get_rect().top = (self.MARGIN_SIZE + 1.4 * self.BIGGER_FONT_SIZE)
         self.__bravoInfo.get_rect().centerx = self.__screen.get_rect().centerx
 
         self.__nameInput.get_rect().top = (self.__bravoInfo.get_rect().bottom + self.__bravoInfo.get_rect().height)
@@ -124,32 +124,32 @@ class Game:
             (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
 
     def __init_leaderboard(self, windowWidth):
-        self.__leaderboard = Leaderboard(self.__buttonFont, self.FONT_COLOR, self.__icons['logo'],
+        self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont,  self.FONT_COLOR, self.__icons['logo'],
                                          self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95, self.__leaderboardContent)
         self.__leaderboard.get_rect().top = self.MARGIN_SIZE
         self.__leaderboard.get_rect().centerx = self.__screen.get_rect().centerx
 
-        self.__returnInfo = Element(self.__buttonFont.render("Press ESC to continue", True, self.FONT_COLOR))
+        self.__returnInfo = Element(self.__biggerFont.render("Press ESC to continue", True, self.FONT_COLOR))
         self.__returnInfo.get_rect().top = self.__leaderboard.get_rect().bottom + 20
         self.__returnInfo.get_rect().centerx = self.__screen.get_rect().centerx
 
     def __init_toolbar(self):
-        self.__difficultyButton = TextButton(self.__buttonFont, self.FONT_COLOR,
+        self.__difficultyButton = TextButton(self.__biggerFont, self.FONT_COLOR,
                                              "Difficulty settings", self.__toggle_difficulty_settings)
         self.__difficultyButton.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5,
-                                                          self.MARGIN_SIZE - self.BUTTON_FONT_SIZE / 2),
+                                                          self.MARGIN_SIZE - self.BIGGER_FONT_SIZE / 2),
                                                          self.__difficultyButton.get_rect().size))
 
-        self.__leaderboardButton = TextButton(self.__buttonFont, self.FONT_COLOR,
+        self.__leaderboardButton = TextButton(self.__biggerFont, self.FONT_COLOR,
                                               "Leaderboard", self.__show_leaderboard)
         self.__leaderboardButton.replace_rect(
             pygame.Rect((self.MARGIN_SIZE + 5,
-                         self.__difficultyButton.get_rect().bottom + self.BUTTON_FONT_SIZE / 2),
+                         self.__difficultyButton.get_rect().bottom + self.BIGGER_FONT_SIZE / 2),
                         self.__leaderboardButton.get_rect().size))
 
         self.__difficultyBox = CheckBoxSelector(
-            (self.__difficultyButton.get_rect().right + 1, self.MARGIN_SIZE - self.CHECKBOX_FONT_SIZE / 2),
-            self.__checkboxFont, self.FONT_COLOR, ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], self.change_difficulty,
+            (self.__difficultyButton.get_rect().right + 1, self.MARGIN_SIZE - self.SMALLER_FONT_SIZE / 2),
+            self.__smallerFont, self.FONT_COLOR, ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], self.change_difficulty,
             self.__difficulty)
 
     def __reset_game(self):
@@ -298,7 +298,7 @@ class Game:
     def handle_victory(self):
         if self.__leaderboard.needs_update(self.__difficultyBox.get_selected(), self.__timer.get_value()):
             self.__timeInfo = Element(
-                self.__buttonFont.render("You've achieved victory in {} seconds".format(self.__timer.get_value()), True,
+                self.__biggerFont.render("You've achieved victory in {} seconds".format(self.__timer.get_value()), True,
                                          self.FONT_COLOR))
             self.__timeInfo.get_rect().top = self.MARGIN_SIZE
             self.__timeInfo.get_rect().centerx = self.__screen.get_rect().centerx
