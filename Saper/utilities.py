@@ -20,27 +20,17 @@ def create_background(rows, cols, tileSize, bgColor, lineColor):
     return field
 
 
-def load_image(name, size=None):
+def load_image(name):
     path = os.path.join(ASSETS_DIR_PATH, name)
-    try:
-        image = pygame.image.load(path)
-    except pygame.error as error:
-        raise SystemError(error)
-
-    if size is not None:
-        if isinstance(size, int):
-            size = (size, size)
-        image = pygame.transform.scale(image, size)
+    image = pygame.image.load(path)
 
     return image
 
 
 def load_font(name, size):
     path = os.path.join(ASSETS_DIR_PATH, name)
-    try:
-        font = pygame.font.Font(path, size)
-    except pygame.error as error:
-        raise SystemError(error)
+    font = pygame.font.Font(path, size)
+
     return font
 
 

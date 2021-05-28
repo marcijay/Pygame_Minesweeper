@@ -12,6 +12,7 @@ class Game:
     FACE_EDGE_LEN = 35
     TIMER_DIG_HEIGHT = 40
     TIMER_DIG_WIDTH = 20
+    SOUND_BUTTON_EDGE_LEN = 35
     LOGO_SIZE = (25, 25)
 
     TOP_BAR_HEIGHT = 50
@@ -39,6 +40,7 @@ class Game:
 
         self.__leaderboardContent = {'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []}
         self.__optionsOpen = False
+        self.__soundOn = True
 
         data = unload_game_data(self.DATAFILE_PATH)
         self.__read_data(data)
@@ -46,10 +48,17 @@ class Game:
         self.__tileSize = self.TILE_EDGE_LEN, self.TILE_EDGE_LEN
         self.__counterSize = self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT
         self.__faceSize = self.FACE_EDGE_LEN, self.FACE_EDGE_LEN
+        self.__soundButtonSize = self.SOUND_BUTTON_EDGE_LEN, self.SOUND_BUTTON_EDGE_LEN
 
         self.__icons = self.__load_icons()
         self.__biggerFont = load_font('Lato-Black.ttf', self.BIGGER_FONT_SIZE)
         self.__smallerFont = load_font('Lato-Black.ttf', self.SMALLER_FONT_SIZE)
+
+        self.__sounds = {'victorySound': pygame.mixer.Sound("assets/sounds/sound_win.wav"),
+                         'bombSound': pygame.mixer.Sound("assets/sounds/sound_boom.wav"),
+                         'resetSound': pygame.mixer.Sound("assets/sounds/sound_reset.wav"),
+                         'buttonSound': pygame.mixer.Sound("assets/sounds/sound_button.wav"),
+                         'flagSound': pygame.mixer.Sound("assets/sounds/sound_flag.wav")}
 
         self.__board = Board((self.__rows, self.__cols), self.__bombs, self.TILE_EDGE_LEN, self)
 
@@ -64,9 +73,10 @@ class Game:
         self.__leaderboardButton = None
         self.__difficultyButton = None
         self.__difficultyBox = None
+        self.__soundButton = None
 
         self.__leaderboard = None
-        self.__returnInfo = None
+        self.__returnButton = None
 
         self.__nameInput = None
         self.__timeInfo = None
@@ -82,6 +92,8 @@ class Game:
             self.__leaderboardContent = data["LEADERS"]
         if 'OPTIONS' in data:
             self.__optionsOpen = data['OPTIONS']
+        if 'SOUND' in data:
+            self.__soundOn = data['SOUND']
         if 'DIFFICULTY' in data:
             self.__set_difficulty(data['DIFFICULTY'])
 
@@ -101,14 +113,12 @@ class Game:
         self.__board.get_rect().size = (self.__cols * self.TILE_EDGE_LEN, self.__rows * self.TILE_EDGE_LEN)
         self.__board.get_rect().center = self.__boardAreaRect.center
 
-        self.__face = ImageButton(self.__icons["face_happy"], self.__board.reset)
-        self.__face.replace_rect(
-            pygame.Rect((windowWidth / 2 - self.FACE_EDGE_LEN / 2,
-                         self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.FACE_EDGE_LEN / 2),
-                        self.__faceSize))
+        self.__face = ImageButton(self.__icons["face_happy"], self.__board.reset, self)
+        self.__face.get_rect().centerx = self.__screen.get_rect().centerx
+        self.__face.get_rect().centery = self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2
 
         self.__init_counters(windowWidth)
-        self.__init_toolbar()
+        self.__init_toolbar(windowWidth)
         self.__init_leaderboard(windowWidth)
         self.__init_entry()
 
@@ -126,46 +136,47 @@ class Game:
 
     def __init_counters(self, windowWidth):
         self.__flagCounter = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
-        self.__flagCounter.replace_rect(pygame.Rect(
-            (self.MARGIN_SIZE + 5,
-             self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
-            (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
+        self.__flagCounter.get_rect().left = self.MARGIN_SIZE + 5
+        self.__flagCounter.get_rect().top = \
+            self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5
         self.__flagCounter.set_value(self.__board.get_flagsLeft())
 
         self.__timer = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
-        self.__timer.replace_rect(pygame.Rect(
-            (windowWidth - self.MARGIN_SIZE - 3 * self.TIMER_DIG_WIDTH - 5,
-             self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5),
-            (3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)))
+        self.__timer.get_rect().left = windowWidth - self.MARGIN_SIZE - 3 * self.TIMER_DIG_WIDTH - 5
+        self.__timer.get_rect().top = \
+            self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5
 
     def __init_leaderboard(self, windowWidth):
-        self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont,  self.FONT_COLOR, self.__icons['logo'],
+        self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont, self.FONT_COLOR, self.__icons['logo'],
                                          self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95, self.__leaderboardContent)
         self.__leaderboard.get_rect().top = self.MARGIN_SIZE
         self.__leaderboard.get_rect().centerx = self.__screen.get_rect().centerx
 
-        self.__returnInfo = Element(self.__biggerFont.render("Press ESC to continue", True, self.FONT_COLOR))
-        self.__returnInfo.get_rect().top = self.__leaderboard.get_rect().bottom + 20
-        self.__returnInfo.get_rect().centerx = self.__screen.get_rect().centerx
+        self.__returnButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Press to continue",
+                                         self.__return_to_game, self)
+        self.__returnButton.get_rect().top = self.__leaderboard.get_rect().bottom + 20
+        self.__returnButton.get_rect().centerx = self.__screen.get_rect().centerx
 
-    def __init_toolbar(self):
+    def __init_toolbar(self, windowWidth):
         self.__difficultyButton = TextButton(self.__biggerFont, self.FONT_COLOR,
-                                             "Difficulty settings", self.__toggle_difficulty_settings)
-        self.__difficultyButton.replace_rect(pygame.Rect((self.MARGIN_SIZE + 5,
-                                                          self.MARGIN_SIZE - self.BIGGER_FONT_SIZE / 2),
-                                                         self.__difficultyButton.get_rect().size))
+                                             "Difficulty settings", self.__toggle_difficulty_settings, self)
+        self.__difficultyButton.get_rect().left = self.MARGIN_SIZE + 5
+        self.__difficultyButton.get_rect().top = self.MARGIN_SIZE - self.BIGGER_FONT_SIZE / 2
 
         self.__leaderboardButton = TextButton(self.__biggerFont, self.FONT_COLOR,
-                                              "Leaderboard", self.__show_leaderboard)
-        self.__leaderboardButton.replace_rect(
-            pygame.Rect((self.MARGIN_SIZE + 5,
-                         self.__difficultyButton.get_rect().bottom + self.BIGGER_FONT_SIZE / 2),
-                        self.__leaderboardButton.get_rect().size))
+                                              "Leaderboard", self.__show_leaderboard, self)
+        self.__leaderboardButton.get_rect().left = self.MARGIN_SIZE + 5
+        self.__leaderboardButton.get_rect().top = self.__difficultyButton.get_rect().bottom + self.BIGGER_FONT_SIZE / 2
 
         self.__difficultyBox = CheckBoxSelector(
             (self.__difficultyButton.get_rect().right + 1, self.MARGIN_SIZE - self.SMALLER_FONT_SIZE / 2),
             self.__smallerFont, self.FONT_COLOR, ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], self.change_difficulty,
             self.__difficulty)
+
+        self.__soundButton = ImageButton(self.__icons['sound_on'] if self.__soundOn else self.__icons['sound_off'],
+                                         self.__toggle_sound, self)
+        self.__soundButton.get_rect().right = windowWidth - self.MARGIN_SIZE - 10
+        self.__soundButton.get_rect().top = self.MARGIN_SIZE + 2
 
     def __reset_game(self):
         self.__board.reset((self.__rows, self.__cols), self.__bombs)
@@ -173,8 +184,21 @@ class Game:
     def __show_leaderboard(self):
         self.__mode = WindowMode.leaderboard
 
+    def __return_to_game(self):
+        self.__mode = WindowMode.game
+
     def __toggle_difficulty_settings(self):
         self.__optionsOpen = not self.__optionsOpen
+
+    def __toggle_sound(self):
+        self.__soundOn = not self.__soundOn
+        self.__update_sound_button()
+
+    def __update_sound_button(self):
+        if self.__soundOn:
+            self.__soundButton.update_surface(self.__icons['sound_on'])
+        else:
+            self.__soundButton.update_surface(self.__icons['sound_off'])
 
     def __handle_name_entry(self, name):
         if not name:
@@ -187,7 +211,7 @@ class Game:
 
         if self.__mode == WindowMode.leaderboard:
             self.__leaderboard.draw(self.__screen)
-            self.__returnInfo.draw(self.__screen)
+            self.__returnButton.draw(self.__screen)
             pygame.display.flip()
             return
 
@@ -209,6 +233,7 @@ class Game:
         self.__difficultyButton.draw(self.__screen)
         if self.__optionsOpen:
             self.__difficultyBox.draw(self.__screen)
+        self.__soundButton.draw(self.__screen)
 
     def __draw_top_bar(self):
         self.__update_face()
@@ -246,6 +271,8 @@ class Game:
                 icon = pygame.transform.smoothscale(icon, self.__faceSize)
             elif fileName.startswith('logo'):
                 icon = pygame.transform.smoothscale(icon, self.LOGO_SIZE)
+            elif fileName.startswith("sound_"):
+                icon = pygame.transform.smoothscale(icon, self.__soundButtonSize)
             else:
                 icon = pygame.transform.scale(icon, self.__tileSize)
             icons[fileName.split('.')[0]] = icon
@@ -278,6 +305,9 @@ class Game:
                 if event.key == pygame.K_ESCAPE:
                     self.__mode = WindowMode.game
 
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.__returnButton.handle_mouse_up(event.button)
+
     def __process_events_game(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -291,6 +321,7 @@ class Game:
                 self.__difficultyButton.handle_mouse_up(event.button)
                 if self.__optionsOpen:
                     self.__difficultyBox.handle_mouse_up(event.button)
+                self.__soundButton.handle_mouse_up(event.button)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.__board.handle_mouse_down(event.button)
@@ -311,6 +342,8 @@ class Game:
             self.__bombs = 99
 
     def handle_victory(self):
+        if self.__soundOn:
+            self.__sounds['victorySound'].play()
         if self.__leaderboard.needs_update(self.__difficultyBox.get_selected(), self.__timer.get_value()):
             self.__timeInfo = Element(
                 self.__biggerFont.render("You've achieved victory in {} seconds".format(self.__timer.get_value()), True,
@@ -327,25 +360,6 @@ class Game:
         self.__init_screen()
         self.__reset_game()
 
-    def start_loop(self):
-        self.__running = True
-        while self.__running:
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.__running = False
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    position = pygame.mouse.get_pos()
-                    isRMB = pygame.mouse.get_pressed(3)[2]
-                    self.handle_click(position, isRMB)
-            self.draw()
-            pygame.display.flip()
-            if self.__board.check_if_victory():
-                sound = pygame.mixer.Sound("assets/victory_sound.wav")
-                sound.play()
-                sleep(3)
-                self.__running = False
-
     def start_game_loop(self):
         clock = pygame.time.Clock()
         self.__running = True
@@ -357,8 +371,14 @@ class Game:
     def get_icons(self):
         return self.__icons
 
+    def get_sounds(self):
+        return self.__sounds
+
     def get_timer(self):
         return self.__timer
+
+    def is_sound_on(self):
+        return self.__soundOn
 
     def get_tile_icon(self, tile):
         name = ''
@@ -384,22 +404,27 @@ class Game:
     def save_data(self, dataFilePath):
         state = {
             "DIFFICULTY": self.__difficultyBox.get_selected(),
-            "LEADERS": self.__leaderboard.get_data(),
-            "OPTIONS": self.__optionsOpen
+            "OPTIONS": self.__optionsOpen,
+            "SOUND": self.__soundOn,
+            "LEADERS": self.__leaderboard.get_data()
         }
         with open(dataFilePath, "w") as file:
             json.dump(state, file)
 
 
 def run():
-    pygame.init()
-    pygame.display.set_caption("Saper")
-    pygame.display.set_icon(load_image('logo.png'))
-    pygame.mouse.set_visible(True)
-    game = Game()
-    game.start_game_loop()
-    game.save_data(game.DATAFILE_PATH)
-    pygame.quit()
+    try:
+        pygame.init()
+        pygame.display.set_caption("Saper")
+        pygame.display.set_icon(load_image('logo.png'))
+        pygame.mouse.set_visible(True)
+        game = Game()
+        game.start_game_loop()
+        game.save_data(game.DATAFILE_PATH)
+    except pygame.error:
+        print("An error occurred!")
+    finally:
+        pygame.quit()
 
 
 if __name__ == '__main__':

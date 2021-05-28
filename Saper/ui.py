@@ -10,9 +10,6 @@ class Element:
     def update_surface(self, newSurface):
         self._surface = newSurface
 
-    def replace_rect(self, newRect):
-        self._rect = newRect
-
     def get_rect(self):
         return self._rect
 
@@ -67,8 +64,9 @@ class Counter(Element):
 
 
 class ImageButton(Element):
-    def __init__(self, surface, action):
+    def __init__(self, surface, action, owner):
         self.__action = action
+        self.__owner = owner
         super().__init__(surface)
 
     def handle_mouse_up(self, button):
@@ -76,12 +74,15 @@ class ImageButton(Element):
             return
 
         if self._rect.collidepoint(*pygame.mouse.get_pos()):
+            if self.__owner.is_sound_on():
+                self.__owner.get_sounds()['buttonSound'].play()
             self.__action()
 
 
 class TextButton(Element):
-    def __init__(self, font, color, text, action):
+    def __init__(self, font, color, text, action, owner):
         self.__action = action
+        self.__owner = owner
         text = font.render(text, True, color)
         margin = 1.5 * font.size("_")[0]
         surface = draw_frame(text.get_width() + margin, 1.2 * text.get_height(), color, pygame.Color(0, 0, 0))
@@ -96,6 +97,8 @@ class TextButton(Element):
             return
 
         if self._rect.collidepoint(*pygame.mouse.get_pos()):
+            if self.__owner.is_sound_on():
+                self.__owner.get_sounds()['buttonSound'].play()
             self.__action()
 
 
