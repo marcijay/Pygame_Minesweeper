@@ -274,6 +274,9 @@ class Leaderboard(Element):
 
         self.__fill_lanes()
 
+    def get_data(self):
+        return self.__data
+
 
 class InputFrame(Element):
     def __init__(self, font, color, message, charactersLimit, action):

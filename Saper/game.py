@@ -1,7 +1,8 @@
+import json
 import os
 from time import sleep
 from board import Board
-from utilities import load_image, load_font
+from utilities import load_image, load_font, unload_game_data
 from ui import *
 from state import *
 
@@ -19,6 +20,7 @@ class Game:
 
     LEADERBOARD_ENTRY_LIMIT = 10
     NAME_INPUT_LEN_LIMIT = 10
+    NAME_INPUT_DELAY = 1
 
     BIGGER_FONT_SIZE = 12
     SMALLER_FONT_SIZE = 10
@@ -26,12 +28,14 @@ class Game:
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
-    def __init__(self, difficulty):
-        self.__difficulty = None
+    DATAFILE_PATH = os.path.join(os.path.dirname(__file__), 'gameData.json')
+
+    def __init__(self):
+        self.__difficulty = 'BEGINNER'
         self.__rows = 10
         self.__cols = 10
-        self.__bombs = 5
-        self.__set_difficulty(difficulty)
+        self.__bombs = 10
+        self.__set_difficulty(self.__difficulty)
 
         self.__leaderboardContent = {'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []}
         self.__optionsOpen = False
@@ -68,7 +72,18 @@ class Game:
         self.__running = None
         self.__mode = WindowMode.game
 
+        data = unload_game_data(self.DATAFILE_PATH)
+        self.__read_data(data)
+
         self.__init_screen()
+
+    def __read_data(self, data):
+        if 'LEADERS' in data:
+            self.__leaderboardContent = data["LEADERS"]
+        if 'OPTIONS' in data:
+            self.__optionsOpen = data['OPTIONS']
+        if 'DIFFICULTY' in data:
+            self.__set_difficulty(data['DIFFICULTY'])
 
     def __init_screen(self):
         boardAreaWidth = self.__cols * self.TILE_EDGE_LEN
@@ -304,6 +319,7 @@ class Game:
             self.__timeInfo.get_rect().centerx = self.__screen.get_rect().centerx
             self.__nameInput.reset_input()
 
+            sleep(self.NAME_INPUT_DELAY)
             self.__mode = WindowMode.entry
 
     def change_difficulty(self, difficulty):
@@ -365,14 +381,24 @@ class Game:
                 name = str(tile.get_bombsAroundNo())
         return self.__icons[name]
 
+    def save_data(self, dataFilePath):
+        state = {
+            "DIFFICULTY": self.__difficultyBox.get_selected(),
+            "LEADERS": self.__leaderboard.get_data(),
+            "OPTIONS": self.__optionsOpen
+        }
+        with open(dataFilePath, "w") as file:
+            json.dump(state, file)
+
 
 def run():
     pygame.init()
     pygame.display.set_caption("Saper")
     pygame.display.set_icon(load_image('logo.png'))
     pygame.mouse.set_visible(True)
-    game = Game("BEGINNER")
+    game = Game()
     game.start_game_loop()
+    game.save_data(game.DATAFILE_PATH)
     pygame.quit()
 
 

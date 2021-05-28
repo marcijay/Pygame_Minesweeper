@@ -1,3 +1,4 @@
+import json
 import os
 import pygame
 import re
@@ -66,3 +67,13 @@ def draw_checked_box(side, color):
 
 def check_entry_key(unicode):
     return ENTRY_UNICODE_REGEX.search(unicode)
+
+
+def unload_game_data(dataFilePath):
+    try:
+        with open(dataFilePath) as file:
+            data = json.load(file)
+    except (IOError, json.JSONDecodeError):
+        data = {}
+
+    return data
