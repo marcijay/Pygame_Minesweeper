@@ -3,7 +3,6 @@ import os
 import pygame
 import re
 
-ASSETS_DIR_PATH = os.path.join(os.path.dirname(__file__), 'assets')
 ENTRY_UNICODE_REGEX = re.compile('[0-9a-zA-Z@_!#$%^&*()<>?/\\|}{~:\[\]]')
 
 
@@ -18,20 +17,6 @@ def create_background(rows, cols, tileSize, bgColor, lineColor):
         pygame.draw.line(field, lineColor, (j * tileSize, 0), (j * tileSize, rows * tileSize))
 
     return field
-
-
-def load_image(name):
-    path = os.path.join(ASSETS_DIR_PATH, name)
-    image = pygame.image.load(path)
-
-    return image
-
-
-def load_font(name, size):
-    path = os.path.join(ASSETS_DIR_PATH, name)
-    font = pygame.font.Font(path, size)
-
-    return font
 
 
 def draw_frame(width, height, lineColor, backgroundColor=None):
