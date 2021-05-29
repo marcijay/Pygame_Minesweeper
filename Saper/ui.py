@@ -200,7 +200,7 @@ class Leaderboard(Element):
         self.__advancedHeader = titleFont.render("ADVANCED", True, color)
         self.__entryStartHeight = (2 * self.__yGap + 3 * textHeight)
 
-        self.__fill_lanes()
+        self.fill_lanes()
 
     def __draw_lanes(self):
         self._surface.fill((0, 0, 0, 0))
@@ -241,7 +241,7 @@ class Leaderboard(Element):
         self._surface.blit(self.__icon, leftIconRect)
         self._surface.blit(self.__icon, rightIconRect)
 
-    def __fill_lanes(self):
+    def fill_lanes(self):
         self.__draw_lanes()
         xName = self.__xGap
         xTime = self.__laneWidth - self.__xGap
@@ -275,10 +275,13 @@ class Leaderboard(Element):
         if len(data) > self.__entryLimit:
             data.pop()
 
-        self.__fill_lanes()
+        self.fill_lanes()
 
     def get_data(self):
         return self.__data
+
+    def set_data(self, newData):
+        self.__data = newData
 
 
 class InputFrame(Element):
@@ -330,3 +333,52 @@ class InputFrame(Element):
     def reset_input(self):
         self.__input = ''
         self.__prepare()
+
+
+class Popup(Element):
+    def __init__(self, font, color, message, icon, buttonConfirm, buttonDeny):
+        self.__font = font
+        self.__color = color
+        self.__icon = icon
+        self.__buttonConfirm = buttonConfirm
+        self.__buttonDeny = buttonDeny
+
+        self.__xGap = 2 * font.size("|")[0]
+        self.__yGap = 0.5 * font.get_height()
+
+        lines = message.split('\n')
+        self.__renderedLines = []
+
+        for line in lines:
+            self.__renderedLines.append(font.render(line, True, color))
+
+        self.__width = max(map(lambda l: l.get_width(), self.__renderedLines)) + icon.get_width() + 3 * self.__xGap
+        self.__height = max(icon.get_height(), len(lines) * (font.get_height() + self.__yGap)) + 3 * self.__yGap \
+            + self.__buttonConfirm.get_rect().height
+
+        super().__init__(pygame.Surface((self.__width, self.__height), pygame.SRCALPHA))
+        self._rect = self._surface.get_rect()
+
+        self.__prepare()
+
+    def __prepare(self):
+        self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1], self.__color)
+
+        iconRect = self.__icon.get_rect(centery=self._surface.get_height() / 2, left=self.__xGap)
+        linesRects = []
+        y = self.__yGap
+        for line in self.__renderedLines:
+            linesRects.append(line.get_rect(top=y, left=iconRect.right + self.__xGap))
+            y += line.get_height() + self.__yGap
+
+        self._surface.blit(self.__icon, iconRect)
+
+        for i in range(len(self.__renderedLines)):
+            self._surface.blit(self.__renderedLines[i], linesRects[i])
+
+    def handle_mouse_up(self, button):
+        if button != 1:  # LMB
+            return
+
+        self.__buttonConfirm.handle_mouse_up()
+        self.__buttonDeny.handle_mouse_up()

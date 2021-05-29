@@ -29,7 +29,7 @@ class Game:
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
-    DATAFILE_PATH = 'gameData.json'
+    DATAFILE_PATH = 'assets/gameData.json'
 
     def __init__(self):
         self.__difficulty = 'BEGINNER'
@@ -77,6 +77,11 @@ class Game:
 
         self.__leaderboard = None
         self.__returnButton = None
+        self.__clearButton = None
+
+        self.__warningPopup = None
+        self.__confirmButton = None
+        self.__abortButton = None
 
         self.__nameInput = None
         self.__timeInfo = None
@@ -147,15 +152,22 @@ class Game:
             self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5
 
     def __init_leaderboard(self, windowWidth):
-        self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont, self.FONT_COLOR, self.__icons['logo'],
-                                         self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95, self.__leaderboardContent)
+        self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont,
+                                         self.FONT_COLOR, self.__icons['logo_mine'],
+                                         self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95,
+                                         self.__leaderboardContent)
         self.__leaderboard.get_rect().top = self.MARGIN_SIZE
         self.__leaderboard.get_rect().centerx = self.__screen.get_rect().centerx
 
         self.__returnButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Press to continue",
                                          self.__return_to_game, self)
         self.__returnButton.get_rect().top = self.__leaderboard.get_rect().bottom + 20
-        self.__returnButton.get_rect().centerx = self.__screen.get_rect().centerx
+        self.__returnButton.get_rect().right = self.__screen.get_rect().centerx - 10
+
+        self.__clearButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Clear leaderboard",
+                                        self.__delete_leaderboard_data, self)
+        self.__clearButton.get_rect().top = self.__leaderboard.get_rect().bottom + 20
+        self.__clearButton.get_rect().left = self.__screen.get_rect().centerx + 10
 
     def __init_toolbar(self, windowWidth):
         self.__difficultyButton = TextButton(self.__biggerFont, self.FONT_COLOR,
@@ -178,11 +190,19 @@ class Game:
         self.__soundButton.get_rect().right = windowWidth - self.MARGIN_SIZE - 10
         self.__soundButton.get_rect().top = self.MARGIN_SIZE + 2
 
+    def __init_popup(self):
+        pass
+
     def __reset_game(self):
         self.__board.reset((self.__rows, self.__cols), self.__bombs)
 
     def __show_leaderboard(self):
         self.__mode = WindowMode.leaderboard
+
+    def __delete_leaderboard_data(self):
+        self.__leaderboardContent = {'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []}
+        self.__leaderboard.set_data({'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []})
+        self.__leaderboard.fill_lanes()
 
     def __return_to_game(self):
         self.__mode = WindowMode.game
@@ -212,6 +232,7 @@ class Game:
         if self.__mode == WindowMode.leaderboard:
             self.__leaderboard.draw(self.__screen)
             self.__returnButton.draw(self.__screen)
+            self.__clearButton.draw(self.__screen)
             pygame.display.flip()
             return
 
@@ -269,7 +290,7 @@ class Game:
                 icon = pygame.transform.smoothscale(icon, self.__counterSize)
             elif fileName.startswith("face_"):
                 icon = pygame.transform.smoothscale(icon, self.__faceSize)
-            elif fileName.startswith('logo'):
+            elif fileName.startswith('logo_'):
                 icon = pygame.transform.smoothscale(icon, self.LOGO_SIZE)
             elif fileName.startswith("sound_"):
                 icon = pygame.transform.smoothscale(icon, self.__soundButtonSize)
@@ -307,6 +328,7 @@ class Game:
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.__returnButton.handle_mouse_up(event.button)
+                self.__clearButton.handle_mouse_up(event.button)
 
     def __process_events_game(self):
         for event in pygame.event.get():
@@ -416,7 +438,7 @@ def run():
     try:
         pygame.init()
         pygame.display.set_caption("Saper")
-        pygame.display.set_icon(pygame.image.load('assets/logo.png'))
+        pygame.display.set_icon(pygame.image.load('assets/logo_mine.png'))
         pygame.mouse.set_visible(True)
         game = Game()
         game.start_game_loop()

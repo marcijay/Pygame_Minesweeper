@@ -1,9 +1,8 @@
 import json
-import os
 import pygame
 import re
 
-ENTRY_UNICODE_REGEX = re.compile('[0-9a-zA-Z@_!#$%^&*()<>?/\\|}{~:\[\]]')
+ENTRY_UNICODE_REGEX = re.compile('[@_!#$%^&*()<>?/\\|}{~:\[\]]')
 
 
 def create_background(rows, cols, tileSize, bgColor, lineColor):
@@ -41,7 +40,7 @@ def draw_checked_box(side, color):
 
 
 def check_entry_key(unicode):
-    return ENTRY_UNICODE_REGEX.search(unicode)
+    return ENTRY_UNICODE_REGEX.search(unicode) or unicode.isalnum()
 
 
 def unload_game_data(dataFilePath):
