@@ -6,11 +6,11 @@ from utilities import create_background
 
 
 class Board:
-    def __init__(self, size, bombs, tileSize, owner):
+    def __init__(self, size, mines, tileSize, owner):
         self.__size = size
-        self.__bombs = bombs
-        self.__flagsLeft = bombs
-        self.__clearTilesLeft = self.__size[0] * self.__size[1] - self.__bombs
+        self.__mines = mines
+        self.__flagsLeft = mines
+        self.__clearTilesLeft = self.__size[0] * self.__size[1] - self.__mines
 
         self.__tileSize = tileSize
         self.__owner = owner
@@ -21,7 +21,7 @@ class Board:
         self.__grid = self.__set_grid()
 
         self.__startTime = None
-        self.__bombsPlaced = False
+        self.__minesPlaced = False
 
         self.__rect = pygame.Rect(0, 0, self.__size[0] * self.__tileSize, self.__size[1] * self.__tileSize)
         self.__status = GameState.waiting
@@ -70,7 +70,7 @@ class Board:
     def __check_tile_open(self, tile):
         if tile.is_flagged():
             return
-        if tile.is_bomb():
+        if tile.is_mine():
             if self.__owner.is_sound_on():
                 self.__owner.get_sounds()['bombSound'].play()
             self.__change_status(GameState.lost)
@@ -78,7 +78,7 @@ class Board:
             return
         if not tile.is_clicked():
             if self.__status == GameState.waiting:
-                self.__place_bombs(tile)
+                self.__place_mines(tile)
                 self.__startTime = pygame.time.get_ticks()
                 self.__change_status(GameState.running)
             self.__open_tiles(tile)
@@ -86,25 +86,25 @@ class Board:
     def __open_tiles(self, tile):
         tile.click()
         self.__clearTilesLeft -= 1
-        if tile.get_bombsAroundNo() != 0:
+        if tile.get_minesAroundNo() != 0:
             return
         for adjacent in tile.get_adjacentTiles():
-            if not adjacent.is_bomb() and not adjacent.is_clicked() and not adjacent.is_flagged():
+            if not adjacent.is_mine() and not adjacent.is_clicked() and not adjacent.is_flagged():
                 self.__open_tiles(adjacent)
 
     def __change_status(self, newStatus):
         self.__status = newStatus
 
-    def __place_bombs(self, tile):
-        for n in range(self.__bombs):
+    def __place_mines(self, tile):
+        for n in range(self.__mines):
             while True:
                 x = randint(0, self.__size[0] - 1)
                 y = randint(0, self.__size[1] - 1)
-                if not (self.get_tile((x, y)).is_bomb()) and\
+                if not (self.get_tile((x, y)).is_mine()) and\
                         not (tile.get_position()[0] == x and tile.get_position()[1] == y):
-                    self.get_tile((x, y)).set_bomb()
+                    self.get_tile((x, y)).set_mine()
                     break
-        self.__bombsPlaced = True
+        self.__minesPlaced = True
         self.__set_adjacent()
 
     def draw(self, surface):
@@ -164,21 +164,21 @@ class Board:
             self.__flagsLeft = 0
             self.__owner.handle_victory()
 
-    def reset(self, size=None, bombs=None):
+    def reset(self, size=None, mines=None):
         if self.__owner.is_sound_on():
             self.__owner.get_sounds()['resetSound'].play()
 
         if size is not None:
             self.__size = size
-        if bombs is not None:
-            self.__bombs = bombs
-        self.__flagsLeft = self.__bombs
-        self.__clearTilesLeft = self.__size[0] * self.__size[1] - self.__bombs
+        if mines is not None:
+            self.__mines = mines
+        self.__flagsLeft = self.__mines
+        self.__clearTilesLeft = self.__size[0] * self.__size[1] - self.__mines
         self.__background = create_background(self.__size[0], self.__size[1], self.__tileSize,
                                               self.__bgColour, self.__linesColour)
         self.__grid = self.__set_grid()
         self.__startTime = None
-        self.__bombsPlaced = False
+        self.__minesPlaced = False
         self.__status = GameState.waiting
 
         self.__owner.get_timer().set_value(0)

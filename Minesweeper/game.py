@@ -24,7 +24,7 @@ class Game:
     NAME_INPUT_DELAY = 1
 
     BIGGER_FONT_SIZE = 12
-    SMALLER_FONT_SIZE = 10
+    SMALLER_FONT_SIZE = 9
     FONT_COLOR = pygame.Color(255, 0, 0)
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
@@ -181,7 +181,7 @@ class Game:
         self.__leaderboardButton.get_rect().top = self.__difficultyButton.get_rect().bottom + self.BIGGER_FONT_SIZE / 2
 
         self.__difficultyBox = CheckBoxSelector(
-            (self.__difficultyButton.get_rect().right + 1, self.MARGIN_SIZE - self.SMALLER_FONT_SIZE / 2),
+            (self.__difficultyButton.get_rect().right + 1, self.MARGIN_SIZE - self.BIGGER_FONT_SIZE / 2),
             self.__smallerFont, self.FONT_COLOR, ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], self.change_difficulty,
             self.__difficulty)
 
@@ -406,21 +406,21 @@ class Game:
         name = ''
         if self.__board.get_status() == GameState.running or self.__board.get_status() == GameState.waiting:
             if tile.is_clicked():
-                name = "mine_boom" if tile.is_bomb() else str(tile.get_bombsAroundNo())
+                name = "mine_boom" if tile.is_mine() else str(tile.get_minesAroundNo())
             else:
                 name = "flagged_tile" if tile.is_flagged() else "blanc_tile"
         elif self.__board.get_status() == GameState.lost:
             if tile.is_clicked():
-                name = "mine_boom" if tile.is_bomb() else str(tile.get_bombsAroundNo())
+                name = "mine_boom" if tile.is_mine() else str(tile.get_minesAroundNo())
             elif tile.is_flagged():
-                name = "not_mine" if tile.is_flagged() and not tile.is_bomb() else "flagged_tile"
+                name = "not_mine" if tile.is_flagged() and not tile.is_mine() else "flagged_tile"
             else:
-                name = "mine" if tile.is_bomb() else "blanc_tile"
+                name = "mine" if tile.is_mine() else "blanc_tile"
         elif self.__board.get_status() == GameState.won:
-            if tile.is_bomb():
+            if tile.is_mine():
                 name = "flagged_tile"
             else:
-                name = str(tile.get_bombsAroundNo())
+                name = str(tile.get_minesAroundNo())
         return self.__icons[name]
 
     def save_data(self, dataFilePath):
@@ -437,7 +437,7 @@ class Game:
 def run():
     try:
         pygame.init()
-        pygame.display.set_caption("Saper")
+        pygame.display.set_caption("Minesweeper")
         pygame.display.set_icon(pygame.image.load('assets/logo_mine.png'))
         pygame.mouse.set_visible(True)
         game = Game()
