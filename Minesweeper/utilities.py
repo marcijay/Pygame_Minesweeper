@@ -1,4 +1,5 @@
 import json
+import os
 import pygame
 import re
 
@@ -51,3 +52,13 @@ def unload_game_data(dataFilePath):
         data = {}
 
     return data
+
+
+def load_sounds():
+    sounds = {}
+    for fileName in os.listdir("assets/sounds"):
+        if not fileName.endswith(".wav"):
+            continue
+        sound = pygame.mixer.Sound("assets/sounds/" + fileName)
+        sounds[fileName.split('.')[0]] = sound
+    return sounds

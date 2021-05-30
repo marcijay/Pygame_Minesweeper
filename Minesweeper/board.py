@@ -72,7 +72,7 @@ class Board:
             return
         if tile.is_mine():
             if self.__owner.is_sound_on():
-                self.__owner.get_sounds()['bombSound'].play()
+                self.__owner.get_sounds()['sound_boom'].play()
             self.__change_status(GameState.lost)
             tile.click()
             return
@@ -137,12 +137,12 @@ class Board:
                 if not tile.is_clicked():
                     if tile.is_flagged():
                         if self.__owner.is_sound_on():
-                            self.__owner.get_sounds()['flagSound'].play()
+                            self.__owner.get_sounds()['sound_flag'].play()
                         tile.toggle_flag()
                         self.__flagsLeft += 1
                     elif not self.__flagsLeft == 0:
                         if self.__owner.is_sound_on():
-                            self.__owner.get_sounds()['flagSound'].play()
+                            self.__owner.get_sounds()['sound_flag'].play()
                         tile.toggle_flag()
                         self.__flagsLeft -= 1
 
@@ -166,7 +166,7 @@ class Board:
 
     def reset(self, size=None, mines=None):
         if self.__owner.is_sound_on():
-            self.__owner.get_sounds()['resetSound'].play()
+            self.__owner.get_sounds()['sound_reset'].play()
 
         if size is not None:
             self.__size = size

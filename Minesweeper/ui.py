@@ -75,7 +75,7 @@ class ImageButton(Element):
 
         if self._rect.collidepoint(*pygame.mouse.get_pos()):
             if self.__owner.is_sound_on():
-                self.__owner.get_sounds()['buttonSound'].play()
+                self.__owner.get_sounds()['sound_button'].play()
             self.__action()
 
 
@@ -98,7 +98,7 @@ class TextButton(Element):
 
         if self._rect.collidepoint(*pygame.mouse.get_pos()):
             if self.__owner.is_sound_on():
-                self.__owner.get_sounds()['buttonSound'].play()
+                self.__owner.get_sounds()['sound_button'].play()
             self.__action()
 
 

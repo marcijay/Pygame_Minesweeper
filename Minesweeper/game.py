@@ -2,7 +2,7 @@ import json
 import os
 from time import sleep
 from board import Board
-from utilities import unload_game_data
+from utilities import unload_game_data, load_sounds
 from ui import *
 from state import *
 
@@ -31,6 +31,8 @@ class Game:
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
+    FRAME_RATE = 30
+
     DATAFILE_PATH = 'assets/gameData.json'
 
     def __init__(self):
@@ -56,12 +58,7 @@ class Game:
         self.__biggerFont = pygame.font.Font('assets/Lato-Black.ttf', self.BIGGER_FONT_SIZE)
         self.__smallerFont = pygame.font.Font('assets/Lato-Black.ttf', self.SMALLER_FONT_SIZE)
 
-        self.__sounds = {'victorySound': pygame.mixer.Sound("assets/sounds/sound_win.wav"),
-                         'bombSound': pygame.mixer.Sound("assets/sounds/sound_boom.wav"),
-                         'resetSound': pygame.mixer.Sound("assets/sounds/sound_reset.wav"),
-                         'cuttingSound': pygame.mixer.Sound("assets/sounds/sound_cutting.wav"),
-                         'buttonSound': pygame.mixer.Sound("assets/sounds/sound_button.wav"),
-                         'flagSound': pygame.mixer.Sound("assets/sounds/sound_flag.wav")}
+        self.__sounds = load_sounds()
 
         self.__board = Board((self.__rows, self.__cols), self.__bombs, self.TILE_EDGE_LEN, self)
 
@@ -211,9 +208,6 @@ class Game:
         self.__soundButton.get_rect().right = windowWidth - self.MARGIN_SIZE - 10
         self.__soundButton.get_rect().top = self.MARGIN_SIZE + 2
 
-    def __init_popup(self):
-        pass
-
     def __reset_game(self):
         self.__board.reset((self.__rows, self.__cols), self.__bombs)
 
@@ -229,7 +223,7 @@ class Game:
 
     def __delete_leaderboard_data(self):
         if self.__soundOn:
-            self.__sounds['cuttingSound'].play()
+            self.__sounds['sound_cutting'].play()
 
         self.__leaderboardContent = {'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []}
         self.__leaderboard.set_data({'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []})
@@ -423,7 +417,7 @@ class Game:
 
     def handle_victory(self):
         if self.__soundOn:
-            self.__sounds['victorySound'].play()
+            self.__sounds['sound_win'].play()
         if self.__leaderboard.needs_update(self.__difficultyBox.get_selected(), self.__timer.get_value()):
             self.__timeInfo = Element(
                 self.__biggerFont.render("You've achieved victory in {} seconds".format(self.__timer.get_value()), True,
@@ -444,7 +438,7 @@ class Game:
         clock = pygame.time.Clock()
         self.__running = True
         while self.__running:
-            clock.tick(30)
+            clock.tick(self.FRAME_RATE)
             self.__process_events()
             self.__draw_all()
 
