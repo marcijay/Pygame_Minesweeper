@@ -380,5 +380,5 @@ class Popup(Element):
         if button != 1:  # LMB
             return
 
-        self.__buttonConfirm.handle_mouse_up()
-        self.__buttonDeny.handle_mouse_up()
+        self.__buttonConfirm.handle_mouse_up(button)
+        self.__buttonDeny.handle_mouse_up(button)

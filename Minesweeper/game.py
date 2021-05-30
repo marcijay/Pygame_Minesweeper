@@ -14,6 +14,7 @@ class Game:
     TIMER_DIG_WIDTH = 20
     SOUND_BUTTON_EDGE_LEN = 35
     LOGO_SIZE = (25, 25)
+    WARNING_ICON_SIZE = (35, 35)
 
     TOP_BAR_HEIGHT = 50
     TOOLBAR_HEIGHT = 50
@@ -57,6 +58,7 @@ class Game:
         self.__sounds = {'victorySound': pygame.mixer.Sound("assets/sounds/sound_win.wav"),
                          'bombSound': pygame.mixer.Sound("assets/sounds/sound_boom.wav"),
                          'resetSound': pygame.mixer.Sound("assets/sounds/sound_reset.wav"),
+                         'cuttingSound': pygame.mixer.Sound("assets/sounds/sound_cutting.wav"),
                          'buttonSound': pygame.mixer.Sound("assets/sounds/sound_button.wav"),
                          'flagSound': pygame.mixer.Sound("assets/sounds/sound_flag.wav")}
 
@@ -126,6 +128,20 @@ class Game:
         self.__init_toolbar(windowWidth)
         self.__init_leaderboard(windowWidth)
         self.__init_entry()
+        self.__init_delete_data_screen()
+
+    def __init_delete_data_screen(self):
+        self.__abortButton = TextButton(self.__biggerFont, self.FONT_COLOR, "No", self.__show_leaderboard, self)
+        self.__confirmButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Yes", self.__delete_leaderboard_data,
+                                          self)
+        self.__warningPopup = Popup(self.__biggerFont, self.FONT_COLOR,
+                                    "All leaderboard entries will be deleted!\nDo you want to proceed?",
+                                    self.__icons['warning'], self.__confirmButton, self.__abortButton)
+        self.__warningPopup.get_rect().center = self.__screen.get_rect().center
+        self.__abortButton.get_rect().left = self.__screen.get_rect().centerx + 30
+        self.__abortButton.get_rect().top = self.__screen.get_rect().centery + self.BIGGER_FONT_SIZE
+        self.__confirmButton.get_rect().left = self.__screen.get_rect().centerx - 30
+        self.__confirmButton.get_rect().top = self.__screen.get_rect().centery + self.BIGGER_FONT_SIZE
 
     def __init_entry(self):
         self.__nameInput = InputFrame(self.__biggerFont, self.FONT_COLOR, "Enter name (max. 10 characters)",
@@ -153,7 +169,7 @@ class Game:
 
     def __init_leaderboard(self, windowWidth):
         self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont,
-                                         self.FONT_COLOR, self.__icons['logo_mine'],
+                                         self.FONT_COLOR, self.__icons['logo'],
                                          self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95,
                                          self.__leaderboardContent)
         self.__leaderboard.get_rect().top = self.MARGIN_SIZE
@@ -165,7 +181,7 @@ class Game:
         self.__returnButton.get_rect().right = self.__screen.get_rect().centerx - 10
 
         self.__clearButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Clear leaderboard",
-                                        self.__delete_leaderboard_data, self)
+                                        self.__warn_before_deleting_data, self)
         self.__clearButton.get_rect().top = self.__leaderboard.get_rect().bottom + 20
         self.__clearButton.get_rect().left = self.__screen.get_rect().centerx + 10
 
@@ -199,10 +215,21 @@ class Game:
     def __show_leaderboard(self):
         self.__mode = WindowMode.leaderboard
 
+    def __warn_before_deleting_data(self):
+        entryCount = 0
+        for key in self.__leaderboard.get_data().keys():
+            entryCount += len(self.__leaderboard.get_data()[key])
+        if entryCount > 0:
+            self.__mode = WindowMode.delete
+
     def __delete_leaderboard_data(self):
+        if self.__soundOn:
+            self.__sounds['cuttingSound'].play()
+
         self.__leaderboardContent = {'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []}
         self.__leaderboard.set_data({'BEGINNER': [], 'INTERMEDIATE': [], 'ADVANCED': []})
         self.__leaderboard.fill_lanes()
+        self.__show_leaderboard()
 
     def __return_to_game(self):
         self.__mode = WindowMode.game
@@ -240,6 +267,13 @@ class Game:
             self.__timeInfo.draw(self.__screen)
             self.__bravoInfo.draw(self.__screen)
             self.__nameInput.draw(self.__screen)
+            pygame.display.flip()
+            return
+
+        elif self.__mode == WindowMode.delete:
+            self.__warningPopup.draw(self.__screen)
+            self.__confirmButton.draw(self.__screen)
+            self.__abortButton.draw(self.__screen)
             pygame.display.flip()
             return
 
@@ -290,10 +324,12 @@ class Game:
                 icon = pygame.transform.smoothscale(icon, self.__counterSize)
             elif fileName.startswith("face_"):
                 icon = pygame.transform.smoothscale(icon, self.__faceSize)
-            elif fileName.startswith('logo_'):
+            elif fileName.startswith('logo'):
                 icon = pygame.transform.smoothscale(icon, self.LOGO_SIZE)
             elif fileName.startswith("sound_"):
                 icon = pygame.transform.smoothscale(icon, self.__soundButtonSize)
+            elif fileName.startswith("warning"):
+                icon = pygame.transform.smoothscale(icon, self.WARNING_ICON_SIZE)
             else:
                 icon = pygame.transform.scale(icon, self.__tileSize)
             icons[fileName.split('.')[0]] = icon
@@ -304,8 +340,25 @@ class Game:
             self.__process_events_leaderboard()
         elif self.__mode == WindowMode.entry:
             self.__process_events_entry()
+        elif self.__mode == WindowMode.delete:
+            self.__process_events_delete_data()
         else:
             self.__process_events_game()
+
+    def __process_events_delete_data(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.__running = False
+                break
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.__mode = WindowMode.leaderboard
+                elif event.key == pygame.K_RETURN:
+                    self.__delete_leaderboard_data()
+
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.__warningPopup.handle_mouse_up(event.button)
 
     def __process_events_entry(self):
         for event in pygame.event.get():
@@ -438,7 +491,7 @@ def run():
     try:
         pygame.init()
         pygame.display.set_caption("Minesweeper")
-        pygame.display.set_icon(pygame.image.load('assets/logo_mine.png'))
+        pygame.display.set_icon(pygame.image.load('assets/logo.png'))
         pygame.mouse.set_visible(True)
         game = Game()
         game.start_game_loop()
