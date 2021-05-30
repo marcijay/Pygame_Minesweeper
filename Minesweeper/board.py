@@ -107,6 +107,12 @@ class Board:
         self.__minesPlaced = True
         self.__set_adjacent()
 
+    def __check_if_won(self):
+        if self.__clearTilesLeft == 0:
+            self.__change_status(GameState.won)
+            self.__flagsLeft = 0
+            self.__owner.handle_victory()
+
     def draw(self, surface):
         background = self.__background.copy()
         self.__draw_tiles(background)
@@ -157,12 +163,6 @@ class Board:
                 tile = self.get_tile((i, j))
                 self.__check_tile_open(tile)
                 self.__check_if_won()
-
-    def __check_if_won(self):
-        if self.__clearTilesLeft == 0:
-            self.__change_status(GameState.won)
-            self.__flagsLeft = 0
-            self.__owner.handle_victory()
 
     def reset(self, size=None, mines=None):
         if self.__owner.is_sound_on():

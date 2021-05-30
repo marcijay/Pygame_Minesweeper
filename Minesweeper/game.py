@@ -1,9 +1,6 @@
 import json
 import os
 from time import sleep
-
-import pygame.transform
-
 from board import Board
 from utilities import unload_game_data
 from ui import *
@@ -504,8 +501,8 @@ def run():
         game = Game()
         game.start_game_loop()
         game.save_data(game.DATAFILE_PATH)
-    except pygame.error:
-        print("An error occurred!")
+    except pygame.error as err:
+        print(f"An error occurred: {err.args}")
     finally:
         pygame.quit()
 
