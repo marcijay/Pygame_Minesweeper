@@ -14,7 +14,7 @@ class Game:
     TIMER_DIG_WIDTH = 20
     SOUND_BUTTON_EDGE_LEN = 35
     LOGO_SIZE = (25, 25)
-    WARNING_ICON_SIZE = (35, 35)
+    WARNING_ICON_SIZE = (40, 40)
 
     TOP_BAR_HEIGHT = 50
     TOOLBAR_HEIGHT = 50
@@ -138,9 +138,9 @@ class Game:
                                     "All leaderboard entries will be deleted!\nDo you want to proceed?",
                                     self.__icons['warning'], self.__confirmButton, self.__abortButton)
         self.__warningPopup.get_rect().center = self.__screen.get_rect().center
-        self.__abortButton.get_rect().left = self.__screen.get_rect().centerx + 30
+        self.__abortButton.get_rect().left = self.__screen.get_rect().centerx + 45
         self.__abortButton.get_rect().top = self.__screen.get_rect().centery + self.BIGGER_FONT_SIZE
-        self.__confirmButton.get_rect().left = self.__screen.get_rect().centerx - 30
+        self.__confirmButton.get_rect().left = self.__screen.get_rect().centerx - 15
         self.__confirmButton.get_rect().top = self.__screen.get_rect().centery + self.BIGGER_FONT_SIZE
 
     def __init_entry(self):

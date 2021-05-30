@@ -368,7 +368,7 @@ class Popup(Element):
         linesRects = []
         y = self.__yGap
         for line in self.__renderedLines:
-            linesRects.append(line.get_rect(top=y, left=iconRect.right + self.__xGap))
+            linesRects.append(line.get_rect(top=y, centerx=(self._rect.width - iconRect.width) / 2 + iconRect.width + self.__yGap))
             y += line.get_height() + self.__yGap
 
         self._surface.blit(self.__icon, iconRect)
