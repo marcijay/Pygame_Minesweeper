@@ -174,10 +174,11 @@ class CheckBoxSelector(Element):
 
 
 class Leaderboard(Element):
-    def __init__(self, titleFont, entryFont, color, icon, entryLimit, width, data):
+    def __init__(self, titleFont, entryFont, fontColor, backgroundColor, icon, entryLimit, width, data):
         self.__font = titleFont
         self.__entryFont = entryFont
-        self.__color = color
+        self.__fontColor = fontColor
+        self.__backgroundColor = backgroundColor
         self.__icon = icon
         self.__entryLimit = entryLimit
         self.__data = data
@@ -194,16 +195,16 @@ class Leaderboard(Element):
         super().__init__(pygame.Surface((self.__width, self.__height), pygame.SRCALPHA))
         self._rect = self._surface.get_rect()
 
-        self.__title = titleFont.render("LEADERBOARD", True, color)
-        self.__beginnerHeader = titleFont.render("BEGINNER", True, color)
-        self.__intermediateHeader = titleFont.render("INTERMEDIATE", True, color)
-        self.__advancedHeader = titleFont.render("ADVANCED", True, color)
+        self.__title = titleFont.render("LEADERBOARD", True, fontColor)
+        self.__beginnerHeader = titleFont.render("BEGINNER", True, fontColor)
+        self.__intermediateHeader = titleFont.render("INTERMEDIATE", True, fontColor)
+        self.__advancedHeader = titleFont.render("ADVANCED", True, fontColor)
         self.__entryStartHeight = (2 * self.__yGap + 3 * textHeight)
 
         self.fill_lanes()
 
     def __draw_lanes(self):
-        self._surface.fill((0, 0, 0, 0))
+        self._surface.fill(self.__backgroundColor)
 
         titleTop = self.__yGap
         difficultiesTop = titleTop + 2 * self.__font.get_height()
@@ -212,18 +213,18 @@ class Leaderboard(Element):
         frameTop = 0
         frameTitleSeparatorHeight = 2 * self.__yGap + self.__font.get_height()
 
-        pygame.draw.line(self._surface, self.__color, (frameLeft, frameTop), (self.__width, frameTop), 2)
-        pygame.draw.line(self._surface, self.__color, (frameLeft, frameTop), (frameLeft, self.__height), 2)
-        pygame.draw.line(self._surface, self.__color, (self.__width - 2, frameTop),
+        pygame.draw.line(self._surface, self.__fontColor, (frameLeft, frameTop), (self.__width, frameTop), 2)
+        pygame.draw.line(self._surface, self.__fontColor, (frameLeft, frameTop), (frameLeft, self.__height), 2)
+        pygame.draw.line(self._surface, self.__fontColor, (self.__width - 2, frameTop),
                          (self.__width - 2, self.__height), 2)
-        pygame.draw.line(self._surface, self.__color, (frameLeft, self.__height - 2),
+        pygame.draw.line(self._surface, self.__fontColor, (frameLeft, self.__height - 2),
                          (self.__width, self.__height - 2), 2)
 
-        pygame.draw.line(self._surface, self.__color, (frameLeft, frameTitleSeparatorHeight),
+        pygame.draw.line(self._surface, self.__fontColor, (frameLeft, frameTitleSeparatorHeight),
                          (self.__width, frameTitleSeparatorHeight))
-        pygame.draw.line(self._surface, self.__color, (self.__laneWidth, frameTitleSeparatorHeight),
+        pygame.draw.line(self._surface, self.__fontColor, (self.__laneWidth, frameTitleSeparatorHeight),
                          (self.__laneWidth, self.__height))
-        pygame.draw.line(self._surface, self.__color, (2 * self.__laneWidth, frameTitleSeparatorHeight),
+        pygame.draw.line(self._surface, self.__fontColor, (2 * self.__laneWidth, frameTitleSeparatorHeight),
                          (2 * self.__laneWidth, self.__height))
 
         titleRect = self.__title.get_rect(top=self.__yGap, centerx=0.5 * self.__width)
@@ -248,8 +249,8 @@ class Leaderboard(Element):
         for difficulty in ['BEGINNER', 'INTERMEDIATE', 'ADVANCED']:
             y = self.__entryStartHeight
             for name, time in self.__data[difficulty]:
-                drawnName = self.__entryFont.render(name, True, self.__color)
-                drawnTime = self.__entryFont.render(str(time), True, self.__color)
+                drawnName = self.__entryFont.render(name, True, self.__fontColor)
+                drawnTime = self.__entryFont.render(str(time), True, self.__fontColor)
                 timeWidth = self.__entryFont.size(str(time))[0]
                 self._surface.blit(drawnName, (xName, y))
                 self._surface.blit(drawnTime, (xTime - timeWidth, y))
@@ -285,10 +286,11 @@ class Leaderboard(Element):
 
 
 class InputFrame(Element):
-    def __init__(self, font, color, message, charactersLimit, action):
+    def __init__(self, font, fontColor, backgroundColor, message, charactersLimit, action):
         self.__font = font
-        self.__color = color
-        self.__drawnMessage = font.render(message, True, color)
+        self.__fontColor = fontColor
+        self.__backgroundColor = backgroundColor
+        self.__drawnMessage = font.render(message, True, fontColor)
         self.__charactersLimit = charactersLimit
         self.__action = action
         self.__input = ""
@@ -298,7 +300,7 @@ class InputFrame(Element):
         width = self.__drawnMessage.get_width() + 2 * xGap
         height = 3 * yGap + 2 * font.get_height()
 
-        super().__init__(draw_frame(width, height, color))
+        super().__init__(draw_frame(width, height, fontColor))
 
         self.__drawnMessageRect = self.__drawnMessage.get_rect(x=xGap, y=yGap)
         self._rect = self._surface.get_rect()
@@ -307,9 +309,10 @@ class InputFrame(Element):
         self.__prepare()
 
     def __prepare(self):
-        self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1], self.__color)
+        self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1],
+                                   self.__fontColor, self.__backgroundColor)
         self._surface.blit(self.__drawnMessage, self.__drawnMessageRect)
-        drawnInput = self.__font.render(self.__input + "_", True, self.__color)
+        drawnInput = self.__font.render(self.__input + "_", True, self.__fontColor)
         rect = drawnInput.get_rect(top=self.__valueTop, centerx=0.5 * self._surface.get_width())
         self._surface.blit(drawnInput, rect)
 
@@ -336,9 +339,10 @@ class InputFrame(Element):
 
 
 class Popup(Element):
-    def __init__(self, font, color, message, icon, buttonConfirm, buttonDeny):
+    def __init__(self, font, fontColor, backgroundColor, message, icon, buttonConfirm, buttonDeny):
         self.__font = font
-        self.__color = color
+        self.__fontColor = fontColor
+        self.__backgroundColor = backgroundColor
         self.__icon = icon
         self.__buttonConfirm = buttonConfirm
         self.__buttonDeny = buttonDeny
@@ -350,7 +354,7 @@ class Popup(Element):
         self.__renderedLines = []
 
         for line in lines:
-            self.__renderedLines.append(font.render(line, True, color))
+            self.__renderedLines.append(font.render(line, True, fontColor))
 
         self.__width = max(map(lambda l: l.get_width(), self.__renderedLines)) + icon.get_width() + 3 * self.__xGap
         self.__height = max(icon.get_height(), len(lines) * (font.get_height() + self.__yGap)) + 3 * self.__yGap \
@@ -362,13 +366,15 @@ class Popup(Element):
         self.__prepare()
 
     def __prepare(self):
-        self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1], self.__color)
+        self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1],
+                                   self.__fontColor, self.__backgroundColor)
 
         iconRect = self.__icon.get_rect(centery=self._surface.get_height() / 2, left=self.__xGap)
         linesRects = []
         y = self.__yGap
         for line in self.__renderedLines:
-            linesRects.append(line.get_rect(top=y, centerx=(self._rect.width - iconRect.width) / 2 + iconRect.width + self.__yGap))
+            linesRects.append(line.get_rect(
+                top=y, centerx=(self._rect.width - iconRect.width) / 2 + iconRect.width + self.__yGap))
             y += line.get_height() + self.__yGap
 
         self._surface.blit(self.__icon, iconRect)

@@ -1,6 +1,9 @@
 import json
 import os
 from time import sleep
+
+import pygame.transform
+
 from board import Board
 from utilities import unload_game_data
 from ui import *
@@ -27,6 +30,7 @@ class Game:
     BIGGER_FONT_SIZE = 12
     SMALLER_FONT_SIZE = 9
     FONT_COLOR = pygame.Color(255, 0, 0)
+    ON_BACKGROUND_TEXT_COLOR = pygame.Color(255, 255, 255)
 
     BACKGROUND_COLOR = pygame.Color(150, 150, 150)
 
@@ -65,6 +69,7 @@ class Game:
         self.__board = Board((self.__rows, self.__cols), self.__bombs, self.TILE_EDGE_LEN, self)
 
         self.__screen = None
+        self.__backgroundPicture = None
 
         self.__face = None
         self.__flagElement = None
@@ -111,7 +116,9 @@ class Game:
         windowHeight = 2 * self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT + boardAreaHeight
 
         self.__screen = pygame.display.set_mode((windowWidth, windowHeight))
-        self.__screen.fill(self.BACKGROUND_COLOR)
+
+        self.__backgroundPicture = pygame.image.load('assets/background.jpg')
+        self.__backgroundPicture = pygame.transform.smoothscale(self.__backgroundPicture, (windowWidth, windowHeight))
 
         self.__boardAreaRect = pygame.Rect(self.MARGIN_SIZE,
                                            self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT,
@@ -134,7 +141,7 @@ class Game:
         self.__abortButton = TextButton(self.__biggerFont, self.FONT_COLOR, "No", self.__show_leaderboard, self)
         self.__confirmButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Yes", self.__delete_leaderboard_data,
                                           self)
-        self.__warningPopup = Popup(self.__biggerFont, self.FONT_COLOR,
+        self.__warningPopup = Popup(self.__biggerFont, self.FONT_COLOR, self.BACKGROUND_COLOR,
                                     "All leaderboard entries will be deleted!\nDo you want to proceed?",
                                     self.__icons['warning'], self.__confirmButton, self.__abortButton)
         self.__warningPopup.get_rect().center = self.__screen.get_rect().center
@@ -144,10 +151,11 @@ class Game:
         self.__confirmButton.get_rect().top = self.__screen.get_rect().centery + self.BIGGER_FONT_SIZE
 
     def __init_entry(self):
-        self.__nameInput = InputFrame(self.__biggerFont, self.FONT_COLOR, "Enter name (max. 10 characters)",
+        self.__nameInput = InputFrame(self.__biggerFont, self.FONT_COLOR, self.BACKGROUND_COLOR,
+                                      "Enter name (max. 10 characters)",
                                       self.NAME_INPUT_LEN_LIMIT, self.__handle_name_entry)
         self.__bravoInfo = Element(
-            self.__biggerFont.render("Congratulations, your score is among best!", True, self.FONT_COLOR))
+            self.__biggerFont.render("Congratulations, your score is among best!", True, self.ON_BACKGROUND_TEXT_COLOR))
 
         self.__bravoInfo.get_rect().top = (self.MARGIN_SIZE + 1.4 * self.BIGGER_FONT_SIZE)
         self.__bravoInfo.get_rect().centerx = self.__screen.get_rect().centerx
@@ -169,7 +177,7 @@ class Game:
 
     def __init_leaderboard(self, windowWidth):
         self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont,
-                                         self.FONT_COLOR, self.__icons['logo'],
+                                         self.FONT_COLOR, self.BACKGROUND_COLOR, self.__icons['logo'],
                                          self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95,
                                          self.__leaderboardContent)
         self.__leaderboard.get_rect().top = self.MARGIN_SIZE
@@ -254,7 +262,7 @@ class Game:
         self.__show_leaderboard()
 
     def __draw_all(self):
-        self.__screen.fill(self.BACKGROUND_COLOR)
+        self.__screen.blit(self.__backgroundPicture, self.__screen.get_rect())
 
         if self.__mode == WindowMode.leaderboard:
             self.__leaderboard.draw(self.__screen)
@@ -422,7 +430,7 @@ class Game:
         if self.__leaderboard.needs_update(self.__difficultyBox.get_selected(), self.__timer.get_value()):
             self.__timeInfo = Element(
                 self.__biggerFont.render("You've achieved victory in {} seconds".format(self.__timer.get_value()), True,
-                                         self.FONT_COLOR))
+                                         self.ON_BACKGROUND_TEXT_COLOR))
             self.__timeInfo.get_rect().top = self.MARGIN_SIZE
             self.__timeInfo.get_rect().centerx = self.__screen.get_rect().centerx
             self.__nameInput.reset_input()
