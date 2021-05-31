@@ -6,6 +6,9 @@ from utilities import create_background
 
 
 class Board:
+    """Class which object is responsible for depicting nad changing board state
+        and handling events directed towards board"""
+
     def __init__(self, size, mines, tileSize, owner):
         self.__size = size
         self.__mines = mines
@@ -27,6 +30,7 @@ class Board:
         self.__status = GameState.waiting
 
     def __draw_tiles(self, background):
+        """Draws tiles pictures onto board according to state of each tile"""
         leftCorner = (0, 0)
         for row in range(self.__size[0]):
             for col in range(self.__size[1]):
@@ -37,6 +41,7 @@ class Board:
             leftCorner = 0, leftCorner[1] + self.__tileSize
 
     def __set_grid(self):
+        """Sets grid of size contained in class and populates it with tiles"""
         board = []
         x = y = 0
         for row in range(self.__size[0]):
@@ -51,6 +56,7 @@ class Board:
         return board
 
     def __set_adjacent(self):
+        """Passes lists of adjacent tiles to each tile in the grid"""
         for row in range(self.__size[0]):
             for col in range(self.__size[1]):
                 tile = self.get_tile((row, col))
@@ -58,6 +64,7 @@ class Board:
                 tile.set_adjacentTiles(adjacent)
 
     def __get_adjacent_tiles(self, index):
+        """Generates and returns lists of tiles adjacent to one passed as argument"""
         adjacent = []
         for row in range(index[0] - 1, index[0] + 2):
             for col in range(index[1] - 1, index[1] + 2):
@@ -68,6 +75,7 @@ class Board:
         return adjacent
 
     def __check_tile_open(self, tile):
+        """Changes state of tile passed as argument and takes actions according to tile contents"""
         if tile.is_flagged():
             return
         if tile.is_mine():
@@ -84,6 +92,7 @@ class Board:
             self.__open_tiles(tile)
 
     def __open_tiles(self, tile):
+        """Recursively clicks all tiles surrounding one passed as argument if the do not contain mines"""
         tile.click()
         self.__clearTilesLeft -= 1
         if tile.get_minesAroundNo() != 0:
@@ -96,6 +105,7 @@ class Board:
         self.__status = newStatus
 
     def __place_mines(self, tile):
+        """Places mines onto random tiles excluding one passed as parameter and ones already containing mine"""
         for n in range(self.__mines):
             while True:
                 x = randint(0, self.__size[0] - 1)
@@ -108,17 +118,20 @@ class Board:
         self.__set_adjacent()
 
     def __check_if_won(self):
+        """Checks for victory condition and changes state of the board accordingly"""
         if self.__clearTilesLeft == 0:
             self.__change_status(GameState.won)
             self.__flagsLeft = 0
             self.__owner.handle_victory()
 
     def draw(self, surface):
+        """Draws board content onto passed surface"""
         background = self.__background.copy()
         self.__draw_tiles(background)
         surface.blit(background, self.__rect)
 
     def handle_mouse_down(self, button):
+        """Handles event of mouse button being pressed down"""
         if self.__status in [GameState.waiting, GameState.won, GameState.lost]:
             return
 
@@ -147,6 +160,7 @@ class Board:
                         self.__flagsLeft -= 1
 
     def handle_mouse_up(self, button):
+        """Handles event of mouse button being let go from pressed state"""
         if self.__status in [GameState.won, GameState.lost]:
             return
 
@@ -165,6 +179,7 @@ class Board:
                 self.__check_if_won()
 
     def reset(self, size=None, mines=None):
+        """Resets board state to pre game start optionally changing board size and amount of mines"""
         if self.__owner.is_sound_on():
             self.__owner.get_sounds()['sound_reset'].play()
 

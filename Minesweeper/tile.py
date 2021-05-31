@@ -1,4 +1,5 @@
 class Tile:
+    """Class responsible for depicting state of singular board tile"""
     def __init__(self, owner, position):
         self.__isMine = False
         self.__isClicked = False

@@ -8,6 +8,8 @@ from state import *
 
 
 class Game:
+    """Class which object is responsible for controlling flow of the game and events handling"""
+
     TILE_EDGE_LEN = 30
     FACE_EDGE_LEN = 35
     TIMER_DIG_HEIGHT = 40
@@ -46,8 +48,7 @@ class Game:
         self.__optionsOpen = False
         self.__soundOn = True
 
-        data = unload_game_data(self.DATAFILE_PATH)
-        self.__read_data(data)
+        self.__read_data(unload_game_data(self.DATAFILE_PATH))
 
         self.__tileSize = self.TILE_EDGE_LEN, self.TILE_EDGE_LEN
         self.__counterSize = self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT
@@ -94,6 +95,7 @@ class Game:
         self.__init_screen()
 
     def __read_data(self, data):
+        """Replaces default settings with ones read from data file"""
         if 'LEADERS' in data:
             self.__leaderboardContent = data["LEADERS"]
         if 'OPTIONS' in data:
@@ -104,6 +106,7 @@ class Game:
             self.__set_difficulty(data['DIFFICULTY'])
 
     def __init_screen(self):
+        """Initializes screen and its components"""
         boardAreaWidth = self.__cols * self.TILE_EDGE_LEN
         boardAreaHeight = self.__rows * self.TILE_EDGE_LEN
         windowWidth = 2 * self.MARGIN_SIZE + boardAreaWidth
@@ -132,6 +135,7 @@ class Game:
         self.__init_delete_data_screen()
 
     def __init_delete_data_screen(self):
+        """Initializes elements of deletion screen"""
         self.__abortButton = TextButton(self.__biggerFont, self.FONT_COLOR, "No", self.__show_leaderboard, self)
         self.__confirmButton = TextButton(self.__biggerFont, self.FONT_COLOR, "Yes", self.__delete_leaderboard_data,
                                           self)
@@ -145,6 +149,7 @@ class Game:
         self.__confirmButton.get_rect().top = self.__screen.get_rect().centery + self.BIGGER_FONT_SIZE
 
     def __init_entry(self):
+        """Initializes elements of data entry screen"""
         self.__nameInput = InputFrame(self.__biggerFont, self.FONT_COLOR, self.BACKGROUND_COLOR,
                                       "Enter name (max. 10 characters)",
                                       self.NAME_INPUT_LEN_LIMIT, self.__handle_name_entry)
@@ -158,6 +163,7 @@ class Game:
         self.__nameInput.get_rect().centerx = self.__screen.get_rect().centerx
 
     def __init_counters(self, windowWidth):
+        """Initializes counter elements"""
         self.__flagCounter = Counter(pygame.Surface((3 * self.TIMER_DIG_WIDTH, self.TIMER_DIG_HEIGHT)), [0, 0, 0], self)
         self.__flagCounter.get_rect().left = self.MARGIN_SIZE + 5
         self.__flagCounter.get_rect().top = \
@@ -170,6 +176,7 @@ class Game:
             self.MARGIN_SIZE + self.TOOLBAR_HEIGHT + self.TOP_BAR_HEIGHT / 2 - self.TIMER_DIG_HEIGHT / 2 - 5
 
     def __init_leaderboard(self, windowWidth):
+        """Initializes elements of leaderboard screen"""
         self.__leaderboard = Leaderboard(self.__biggerFont, self.__smallerFont,
                                          self.FONT_COLOR, self.BACKGROUND_COLOR, self.__icons['logo'],
                                          self.LEADERBOARD_ENTRY_LIMIT, windowWidth * 0.95,
@@ -188,6 +195,7 @@ class Game:
         self.__clearButton.get_rect().left = self.__screen.get_rect().centerx + 10
 
     def __init_toolbar(self, windowWidth):
+        """Initializes elements of toolbar"""
         self.__difficultyButton = TextButton(self.__biggerFont, self.FONT_COLOR,
                                              "Difficulty settings", self.__toggle_difficulty_settings, self)
         self.__difficultyButton.get_rect().left = self.MARGIN_SIZE + 5
@@ -209,12 +217,14 @@ class Game:
         self.__soundButton.get_rect().top = self.MARGIN_SIZE + 2
 
     def __reset_game(self):
+        """Resets game"""
         self.__board.reset((self.__rows, self.__cols), self.__bombs)
 
     def __show_leaderboard(self):
         self.__mode = WindowMode.leaderboard
 
     def __warn_before_deleting_data(self):
+        """Changes screen mode to deletion if necessary"""
         entryCount = 0
         for key in self.__leaderboard.get_data().keys():
             entryCount += len(self.__leaderboard.get_data()[key])
@@ -222,6 +232,7 @@ class Game:
             self.__mode = WindowMode.delete
 
     def __delete_leaderboard_data(self):
+        """Deletes all entries from leaderboard"""
         if self.__soundOn:
             self.__sounds['sound_cutting'].play()
 
@@ -231,28 +242,34 @@ class Game:
         self.__show_leaderboard()
 
     def __return_to_game(self):
+        """Changes window mode to game"""
         self.__mode = WindowMode.game
 
     def __toggle_difficulty_settings(self):
+        """Toggles difficulty menu"""
         self.__optionsOpen = not self.__optionsOpen
 
     def __toggle_sound(self):
+        """Toggles sound"""
         self.__soundOn = not self.__soundOn
         self.__update_sound_button()
 
     def __update_sound_button(self):
+        """Updates icon placed od sound button"""
         if self.__soundOn:
             self.__soundButton.update_surface(self.__icons['sound_on'])
         else:
             self.__soundButton.update_surface(self.__icons['sound_off'])
 
     def __handle_name_entry(self, name):
+        """Handles events after name entry"""
         if not name:
             return
         self.__leaderboard.update(self.__difficultyBox.get_selected(), name, self.__timer.get_value())
         self.__show_leaderboard()
 
     def __draw_all(self):
+        """Draws all visual elements on screen"""
         self.__screen.blit(self.__backgroundPicture, self.__screen.get_rect())
 
         if self.__mode == WindowMode.leaderboard:
@@ -283,6 +300,7 @@ class Game:
         pygame.display.flip()
 
     def __draw_toolbar(self):
+        """Draws toolbar"""
         self.__leaderboardButton.draw(self.__screen)
         self.__difficultyButton.draw(self.__screen)
         if self.__optionsOpen:
@@ -290,6 +308,7 @@ class Game:
         self.__soundButton.draw(self.__screen)
 
     def __draw_top_bar(self):
+        """Draws all elements of top bar"""
         self.__update_face()
         self.__face.draw(self.__screen)
 
@@ -306,6 +325,7 @@ class Game:
         self.__timer.draw(self.__screen)
 
     def __update_face(self):
+        """Updates icon placed od reset button"""
         if self.__board.get_status() == GameState.waiting or self.__board.get_status() == GameState.running:
             self.__face.update_surface(self.__icons['face_happy'])
         elif self.__board.get_status() == GameState.lost:
@@ -314,6 +334,7 @@ class Game:
             self.__face.update_surface(self.__icons['face_cool'])
 
     def __load_icons(self):
+        """Creates and returns dictionary with .png files at said directory"""
         icons = {}
         for fileName in os.listdir("assets"):
             if not fileName.endswith(".png"):
@@ -335,6 +356,7 @@ class Game:
         return icons
 
     def __process_events(self):
+        """Handles all happening events"""
         if self.__mode == WindowMode.leaderboard:
             self.__process_events_leaderboard()
         elif self.__mode == WindowMode.entry:
@@ -345,6 +367,7 @@ class Game:
             self.__process_events_game()
 
     def __process_events_delete_data(self):
+        """Handles events on data deletion screen"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__running = False
@@ -360,6 +383,7 @@ class Game:
                 self.__warningPopup.handle_mouse_up(event.button)
 
     def __process_events_entry(self):
+        """Handles events on new entry creation screen"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__running = False
@@ -369,6 +393,7 @@ class Game:
                 self.__nameInput.handle_key_down(event)
 
     def __process_events_leaderboard(self):
+        """Handles events on leaderboard screen"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__running = False
@@ -383,6 +408,7 @@ class Game:
                 self.__clearButton.handle_mouse_up(event.button)
 
     def __process_events_game(self):
+        """Handles events on main game screen"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__running = False
@@ -401,6 +427,7 @@ class Game:
                 self.__board.handle_mouse_down(event.button)
 
     def __set_difficulty(self, difficulty):
+        """Sets internal parameters according to passed difficulty string"""
         self.__difficulty = difficulty
         if difficulty == "BEGINNER":
             self.__rows = 9
@@ -416,6 +443,7 @@ class Game:
             self.__bombs = 99
 
     def handle_victory(self):
+        """Prepares visual elements and changes screen after victory is achieved"""
         if self.__soundOn:
             self.__sounds['sound_win'].play()
         if self.__leaderboard.needs_update(self.__difficultyBox.get_selected(), self.__timer.get_value()):
@@ -435,6 +463,7 @@ class Game:
         self.__reset_game()
 
     def start_game_loop(self):
+        """Starts main game loop"""
         clock = pygame.time.Clock()
         self.__running = True
         while self.__running:
@@ -455,6 +484,7 @@ class Game:
         return self.__soundOn
 
     def get_tile_icon(self, tile):
+        """Returns image according to state of tile passed as argument and game state"""
         name = ''
         if self.__board.get_status() == GameState.running or self.__board.get_status() == GameState.waiting:
             if tile.is_clicked():
@@ -476,6 +506,7 @@ class Game:
         return self.__icons[name]
 
     def save_data(self, dataFilePath):
+        """Saves chosen data to data file"""
         state = {
             "DIFFICULTY": self.__difficultyBox.get_selected(),
             "OPTIONS": self.__optionsOpen,

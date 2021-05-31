@@ -7,6 +7,8 @@ SPECIAL_CHARACTER_REGEX = re.compile('[@_!#$%^&*()<>?/\\|}{~:\[\]]')
 
 
 def create_background(rows, cols, tileSize, bgColor, lineColor):
+    """Creates and returns surface of given color,
+     visually divided into rectangles according to provided number of rows and columns"""
     field = pygame.Surface((cols * tileSize, rows * tileSize))
     field.fill(bgColor)
 
@@ -20,6 +22,7 @@ def create_background(rows, cols, tileSize, bgColor, lineColor):
 
 
 def draw_frame(width, height, lineColor, backgroundColor=None):
+    """Creates and returns frame (pygame.Surface) of given size optionally filled with solid color"""
     frame = pygame.Surface((width, height), pygame.SRCALPHA)
     if backgroundColor is not None:
         frame.fill(backgroundColor)
@@ -32,6 +35,7 @@ def draw_frame(width, height, lineColor, backgroundColor=None):
 
 
 def draw_checked_box(side, color):
+    """Creates and returns square (pygame.Surface) with drawn cross of given size"""
     box = draw_frame(side, side, color)
     shift = 0.3 * side
     pygame.draw.line(box, color, (shift, shift), (side - shift, side - shift))
@@ -41,10 +45,12 @@ def draw_checked_box(side, color):
 
 
 def check_entry_key(unicode):
+    """Checks if passed unicode sign is appropriate"""
     return SPECIAL_CHARACTER_REGEX.search(unicode) or unicode.isalnum()
 
 
 def unload_game_data(dataFilePath):
+    """Creates and returns dictionary based on contents of file ot given path"""
     try:
         with open(dataFilePath) as file:
             data = json.load(file)
@@ -55,6 +61,7 @@ def unload_game_data(dataFilePath):
 
 
 def load_sounds():
+    """Creates and returns dictionary based on contents of directory ot given path"""
     sounds = {}
     for fileName in os.listdir("assets/sounds"):
         if not fileName.endswith(".wav"):

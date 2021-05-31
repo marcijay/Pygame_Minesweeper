@@ -3,6 +3,7 @@ from utilities import draw_frame, draw_checked_box, check_entry_key
 
 
 class Element:
+    """Base class to represent graphical element, contains surface and rectangle"""
     def __init__(self, surface):
         self._surface = surface
         self._rect = surface.get_rect()
@@ -18,6 +19,7 @@ class Element:
 
 
 class Counter(Element):
+    """Class to  represent counter"""
     def __init__(self, surface, values, owner):
         super().__init__(surface)
         self.__values = values
@@ -64,12 +66,14 @@ class Counter(Element):
 
 
 class ImageButton(Element):
+    """Class to implement button witch image covering surface"""
     def __init__(self, surface, action, owner):
         self.__action = action
         self.__owner = owner
         super().__init__(surface)
 
     def handle_mouse_up(self, button):
+        """Handles event of mouse button being pressed down"""
         if button != 1:  # LMB
             return
 
@@ -80,6 +84,7 @@ class ImageButton(Element):
 
 
 class TextButton(Element):
+    """Class to implement button witch given text in frame covering surface"""
     def __init__(self, font, color, text, action, owner):
         self.__action = action
         self.__owner = owner
@@ -93,6 +98,7 @@ class TextButton(Element):
         self._surface.blit(text, rect)
 
     def handle_mouse_up(self, button):
+        """Handles event of mouse button being pressed down"""
         if button != 1:  # LMB
             return
 
@@ -103,6 +109,7 @@ class TextButton(Element):
 
 
 class CheckBoxSelector(Element):
+    """Class to implement selector allowing to select one option from all available"""
     def __init__(self, pos, font, fontColor, options, action, initialValue):
         boxEdgeLen = font.get_height()
         self.__uncheckedBox = draw_frame(boxEdgeLen, boxEdgeLen, fontColor)
@@ -152,6 +159,7 @@ class CheckBoxSelector(Element):
                 self._surface.blit(self.__uncheckedBox, rect)
 
     def handle_mouse_up(self, button):
+        """Handles event of mouse button being pressed down"""
         if button != 1:  # LMB
             return
 
@@ -174,6 +182,7 @@ class CheckBoxSelector(Element):
 
 
 class Leaderboard(Element):
+    """Class to represent leaderboard"""
     def __init__(self, titleFont, entryFont, fontColor, backgroundColor, icon, entryLimit, width, data):
         self.__font = titleFont
         self.__entryFont = entryFont
@@ -204,6 +213,7 @@ class Leaderboard(Element):
         self.fill_lanes()
 
     def __draw_lanes(self):
+        """Draws empty leaderboard"""
         self._surface.fill(self.__backgroundColor)
 
         titleTop = self.__yGap
@@ -243,6 +253,7 @@ class Leaderboard(Element):
         self._surface.blit(self.__icon, rightIconRect)
 
     def fill_lanes(self):
+        """Populates leaderboard with contents of data dictionary"""
         self.__draw_lanes()
         xName = self.__xGap
         xTime = self.__laneWidth - self.__xGap
@@ -260,6 +271,8 @@ class Leaderboard(Element):
             xTime += self.__laneWidth
 
     def needs_update(self, difficulty, time):
+        """Checks if time passed as argument is good enough
+            to be put in provided difficulty category in data dictionary"""
         data = self.__data[difficulty]
         if len(data) < self.__entryLimit:
             return True
@@ -267,6 +280,7 @@ class Leaderboard(Element):
         return data[-1][1] > time
 
     def update(self, difficulty, name, time):
+        """Places new entry = (name, time) into provided difficulty category in data dictionary"""
         data = self.__data[difficulty]
         i = 0
         while i < len(data) and time >= data[i][1]:
@@ -286,6 +300,7 @@ class Leaderboard(Element):
 
 
 class InputFrame(Element):
+    """Class to create frame with place for user to input data from keyboard"""
     def __init__(self, font, fontColor, backgroundColor, message, charactersLimit, action):
         self.__font = font
         self.__fontColor = fontColor
@@ -309,6 +324,7 @@ class InputFrame(Element):
         self.__prepare()
 
     def __prepare(self):
+        """Prepares frame to be drawn"""
         self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1],
                                    self.__fontColor, self.__backgroundColor)
         self._surface.blit(self.__drawnMessage, self.__drawnMessageRect)
@@ -317,6 +333,7 @@ class InputFrame(Element):
         self._surface.blit(drawnInput, rect)
 
     def handle_key_down(self, event):
+        """Handles event of keyboard key being pressed down"""
         key = event.key
         if key == pygame.K_BACKSPACE:
             if self.__input:
@@ -339,6 +356,7 @@ class InputFrame(Element):
 
 
 class Popup(Element):
+    """Class to represent popup window with provided icon, text message and two option buttons"""
     def __init__(self, font, fontColor, backgroundColor, message, icon, buttonConfirm, buttonDeny):
         self.__font = font
         self.__fontColor = fontColor
@@ -366,6 +384,7 @@ class Popup(Element):
         self.__prepare()
 
     def __prepare(self):
+        """Prepares popup to be drawn"""
         self._surface = draw_frame(self._surface.get_size()[0], self._surface.get_size()[1],
                                    self.__fontColor, self.__backgroundColor)
 
@@ -383,6 +402,7 @@ class Popup(Element):
             self._surface.blit(self.__renderedLines[i], linesRects[i])
 
     def handle_mouse_up(self, button):
+        """Handles event of mouse button being pressed down"""
         if button != 1:  # LMB
             return
 
